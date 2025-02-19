@@ -1,0 +1,24 @@
+#pragma once
+
+#include <IAutomationBuilder.hpp>
+
+class NFABuilderImpl;
+
+class NFABuilder: public IAutomationBuilder
+{
+public:
+    //IAutomationBuilder
+    NFABuilder();
+    ~NFABuilder();
+    IAutomationPtr Build() override;
+
+    //NFABuilder
+    void Init(const std::vector<std::string>& postfix);
+
+private:
+    std::unique_ptr<NFABuilderImpl> m_impl;
+};
+
+using NFABuilderPtr = std::shared_ptr<NFABuilder>;
+
+
