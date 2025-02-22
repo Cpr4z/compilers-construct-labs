@@ -1,10 +1,6 @@
 #pragma once
 
 #include <filesystem>
-#include <boost/filesystem.hpp>
-#include <memory>
-
-#include "boost/bimap.hpp"
 
 #include "IAutomation.hpp"
 

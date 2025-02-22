@@ -1,30 +1,9 @@
 #pragma once
 
 #include "IAutomation.hpp"
-
-#include <map>
-#include <vector>
-
-using StateId = size_t;
-using Token = char;
+#include <State.hpp>
 
 using NFAPtr = std::shared_ptr<class NFA>;
-
-struct State
-{
-    explicit State(StateId id) : m_id(id){}
-
-    bool operator<(const State& other) const
-    {
-        return m_id < other.m_id;
-    }
-
-    StateId m_id;
-    std::map<Token, std::vector<std::shared_ptr<State>>> m_transitions;
-};
-
-using StatePtr = std::shared_ptr<State>;
-
 
 class NFA : public IAutomation
 {
@@ -49,5 +28,3 @@ private:
     StatePtr m_start;
     StatePtr m_accept;
 };
-
-using NFAPtr = std::shared_ptr<NFA>;

@@ -1,16 +1,6 @@
 #pragma once
 
-#include <string>
-#include <map>
-#include <set>
-#include <ranges>
-#include <algorithm>
 #include <vector>
-#include <stack>
-#include <iostream>
-#include <format>
-#include "boost/bimap.hpp"
-
 
 using OperatorPriority = size_t;
 using Token = char;
@@ -49,8 +39,8 @@ enum e
 
 namespace file
 {
-    constexpr std::string_view nfa_file = "nfa_graph";
-    constexpr std::string_view dfa_file = "dfa_graph";
+constexpr std::string_view nfa_file = "nfa_graph";
+constexpr std::string_view dfa_file = "dfa_graph";
 }
 
 std::string_view getFileNameByType(e type);
@@ -60,37 +50,37 @@ namespace VizuType
 {
 namespace FileType
 {
-    enum e
-    {
-        DOT, FIRTS = DOT,
-        PNG,
-        COUNT,
-    };
+enum e
+{
+    DOT, FIRST = DOT,
+    PNG,
+    COUNT,
+};
 }
 
 namespace InfoType
 {
-    enum e
-    {
-        DIR, FIRST = DIR,
-        EXT,
-        COUNT,
-    };
+enum e
+{
+    DIR, FIRST = DIR,
+    EXT,
+    COUNT,
+};
 }
 
 namespace constants
 {
-    namespace dir
-    {
-        constexpr std::string_view dot = "Dot";
-        constexpr std::string_view png = "Png";
-    }
+namespace dir
+{
+    constexpr std::string_view dot = "Dot";
+    constexpr std::string_view png = "Png";
+}
 
-    namespace ext
-    {
-        constexpr std::string_view dot_ext = ".dot";
-        constexpr std::string_view png_ext = ".png";
-    }
+namespace ext
+{
+    constexpr std::string_view dot_ext = ".dot";
+    constexpr std::string_view png_ext = ".png";
+}
 }
 
 std::string_view getInfo(FileType::e type, InfoType::e infoType);

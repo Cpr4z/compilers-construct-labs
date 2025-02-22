@@ -9,11 +9,11 @@ class NFABuilder: public IAutomationBuilder
 public:
     //IAutomationBuilder
     NFABuilder();
-    ~NFABuilder();
+    ~NFABuilder() override;
     IAutomationPtr Build() override;
 
     //NFABuilder
-    void Init(const std::vector<std::string>& postfix);
+    void Init(std::vector<std::string>&& postfix);
 
 private:
     std::unique_ptr<NFABuilderImpl> m_impl;

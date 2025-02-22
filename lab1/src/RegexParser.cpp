@@ -21,13 +21,12 @@ int main()
     while (std::getline(std::cin, regex))
     {
         TokensSequence polishedSequence = utils::preprocessing::validateRegex(regex);
-
         IAutomationFactoryPtr factory = AutomationFactory::CreateStateMachineFactory(utils::AutomationType::e::NFA);
         IAutomationBuilderPtr builder = factory->CreateStateMachineBuilder();
 
         if (const auto& nfaBuilder = std::dynamic_pointer_cast<NFABuilder>(builder); nfaBuilder)
         {
-            nfaBuilder->Init(polishedSequence);
+            nfaBuilder->Init(std::move(polishedSequence));
             IAutomationPtr nfa = nfaBuilder->Build();
             IAutomationVizuPtr vizu = factory->CreateStateMachineVizualizator();
             try

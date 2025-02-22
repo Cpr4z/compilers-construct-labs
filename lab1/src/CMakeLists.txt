@@ -34,7 +34,8 @@ add_executable(lab1
         DFA.hpp
         DFA.cpp
         MyStack.hpp
-        NFA.hpp)
+        NFA.hpp
+        include/State.hpp)
 
 target_include_directories(lab1 PRIVATE ${Boost_INCLUDE_DIRS})
 target_link_libraries(lab1 PRIVATE ${Boost_LIBRARIES})

@@ -7,13 +7,13 @@
 #include "MyStack.hpp"
 #include "NFA.hpp"
 
-constexpr Token EPSILON = 'E';
+//constexpr Token EPSILON = 'E';
 
 class NFABuilderImpl
 {
 public:
     IAutomationPtr build();
-    void init(const std::vector<std::string>& postfixNotation);
+    void init(std::vector<std::string>&& postfixNotation);
 
 private:
     std::vector<std::string> m_postfixNotation;
@@ -58,23 +58,20 @@ IAutomationPtr NFABuilderImpl::build()
     return nfaStack.top();
 }
 
-void NFABuilderImpl::init(const std::vector<std::string>& postfixNotation)
+void NFABuilderImpl::init(std::vector<std::string>&& postfixNotation)
 {
-    m_postfixNotation = postfixNotation;
+    m_postfixNotation = std::move(postfixNotation);
 }
 //////////////////////////////////////////////////////////////////////////////
 NFABuilder::NFABuilder(): m_impl(std::make_unique<NFABuilderImpl>())
 {
 }
 
-NFABuilder::~NFABuilder()
-{
-}
+NFABuilder::~NFABuilder() = default;
 
-
-void NFABuilder::Init(const std::vector<std::string>& postfix)
+void NFABuilder::Init(std::vector<std::string>&& postfix)
 {
-    m_impl->init(postfix);
+    m_impl->init(std::move(postfix));
 }
 
 IAutomationPtr NFABuilder::Build()

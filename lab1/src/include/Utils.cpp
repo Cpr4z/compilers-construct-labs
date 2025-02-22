@@ -1,5 +1,12 @@
 #include "Utils.h"
 
+#include <format>
+#include <map>
+#include <set>
+
+#include "boost/bimap.hpp"
+
+
 namespace utils
 {
 namespace tokenConstants
@@ -22,8 +29,10 @@ namespace tokenConstants
     auto getAlphabet()
     {
         if (ALPHABET.empty()) {
-            ALPHABET.emplace('a');
-            ALPHABET.emplace('b');
+            for (char token = 'a'; token <= 'z'; ++token)
+            {
+                ALPHABET.emplace(token);
+            }
         }
         return ALPHABET;
     }

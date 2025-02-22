@@ -6,17 +6,34 @@
 #include <format>
 #include <iostream>
 
+#include <sstream>
+
 using namespace utils;
 
 size_t AutomationVizualizator::m_countDot = 0;
 size_t AutomationVizualizator::m_countPng = 0;
 
-AutomationVizualizator::~AutomationVizualizator()
+void AutomationVizualizator::cleanDirs() const
 {
+    fs_path dotDir = GeneratePath(VizuType::FileType::DOT);
+    fs_path pngDir = GeneratePath(VizuType::FileType::PNG);
+
+    auto deleteAllFiles = [](const fs_path& path){
+        if (fs::exists(path) && fs::is_directory(path))
+        {
+            fs::remove_all(path);
+        }
+    };
+
+    for (const auto& dir : {dotDir, pngDir})
+    {
+        deleteAllFiles(dir);
+    }
 }
 
 void AutomationVizualizator::CreateVizu(const IAutomationPtr& machine)
 {
+    cleanDirs();
     fs_path path = GeneratePath(VizuType::FileType::DOT);
     std::string_view ext = utils::VizuType::getInfo(VizuType::FileType::DOT, VizuType::InfoType::EXT);
     fs_path targetPath;
@@ -32,8 +49,17 @@ void AutomationVizualizator::CreateVizu(const IAutomationPtr& machine)
         file << "digraph FiniteStateMachine {";
         file << "    rankdir=LR;";
         file << "    node [shape=circle];";
-        std::set<int> visited;
-        printAutomat(nfa->GetStart(), visited, file);
+
+        StatePtr start = nfa->GetStart();
+        file << "  start [shape=none, label=\"start\"];\n";
+        file << "  start -> " << start->m_id << " [style=dashed];\n";
+
+        std::set<StateId> visited;
+        file << printAutomat(start, visited);
+
+        StatePtr accept = nfa->GetAccept();
+        file << "  accept [shape=none, label=\"accept\"];\n";
+        file << "  accept -> " << accept->m_id << " [style=dashed];\n";
 
         file << "}\n";
         file.close();
@@ -78,7 +104,7 @@ void AutomationVizualizator::FromDotToPng(const fs_path& dot)
     file.close();
 }
 
-fs_path AutomationVizualizator::GeneratePath(VizuType::FileType::e type)
+fs_path AutomationVizualizator::GeneratePath(VizuType::FileType::e type) const
 {
     fs_path currentPath = std::filesystem::current_path();
     std::string_view dir = VizuType::getInfo(type, VizuType::InfoType::DIR);
@@ -91,23 +117,24 @@ fs_path AutomationVizualizator::GeneratePath(VizuType::FileType::e type)
     return targetDir;
 }
 
-// to do, Do not use std::ostream like a parameter
-void AutomationVizualizator::printAutomat(const StatePtr& state, std::set<int>& visited, std::ostream& stream)
+std::string AutomationVizualizator::printAutomat(const StatePtr& state, std::set<StateId>& visited)
 {
     if (visited.contains(state->m_id))
     {
-        return;
+        return {};
     }
     visited.insert(state->m_id);
 
+    std::ostringstream out;
     for (auto& [symbol, nextStates]: state->m_transitions)
     {
         for (StatePtr& nextState: nextStates)
         {
-            stream << "    " << state->m_id << " -> " << nextState->m_id
-             << " [label=\"" << static_cast<char>(symbol) << "\"];\n";
-            printAutomat(nextState, visited, stream);
+            out << "    " << state->m_id << " -> " << nextState->m_id
+             << " [label=\"" << symbol << "\"];\n";
+            out << printAutomat(nextState, visited);
         }
     }
+    return out.str();
 }
 
