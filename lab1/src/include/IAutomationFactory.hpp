@@ -6,7 +6,7 @@
 class IAutomationFactory
 {
 public:
-    virtual ~IAutomationFactory() = 0;
+    virtual ~IAutomationFactory() = default;
     virtual IAutomationBuilderPtr CreateStateMachineBuilder() = 0;
     virtual IAutomationVizuPtr CreateStateMachineVizualizator() = 0;
 };

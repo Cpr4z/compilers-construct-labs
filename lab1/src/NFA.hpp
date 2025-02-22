@@ -2,38 +2,52 @@
 
 #include "IAutomation.hpp"
 
-#include <set>
+#include <map>
+#include <vector>
 
 using StateId = size_t;
-using Token = char32_t;
-using StatePtr = std::shared_ptr<class State>;
+using Token = char;
 
 using NFAPtr = std::shared_ptr<class NFA>;
 
-class NFAImpl;
-//class StateComparator;
+struct State
+{
+    explicit State(StateId id) : m_id(id){}
+
+    bool operator<(const State& other) const
+    {
+        return m_id < other.m_id;
+    }
+
+    StateId m_id;
+    std::map<Token, std::vector<std::shared_ptr<State>>> m_transitions;
+};
+
+using StatePtr = std::shared_ptr<State>;
+
 
 class NFA : public IAutomation
 {
 public:
-    // IAutomation
-    NFA();
-    ~NFA();
+    NFA() = default;
+    NFA(StatePtr lhs, StatePtr rhs);
 
+    // IAutomation
     bool Imitate(const std::string& regex) override;
 
     // NFA
-    static NFAPtr Instance();
-    void Init(const StatePtr& start, const StatePtr& accept);
-    void AddTransition(StatePtr&, const StatePtr&, Token);
-    StatePtr CreateState(StateId, bool = false);
-    std::set<State> GetStates() const;
-
-    StatePtr GetStart() const;
-    StatePtr GetAccept() const;
+    [[nodiscard]] static NFAPtr Instance();
+    [[nodiscard]] NFAPtr CreateBaseAutomat(const std::string& token, StateId& id);
+    [[nodiscard]] NFAPtr CreateConcatAutomat(const NFAPtr& first, const NFAPtr& second);
+    [[nodiscard]] NFAPtr CreateKleeneAutomat(const NFAPtr& first, StateId& id);
+    [[nodiscard]] NFAPtr CreateAlternateAutomat(const NFAPtr& first, const NFAPtr& second, StateId& id);
+    [[nodiscard]] StatePtr CreateState(StateId);
+    [[nodiscard]] StatePtr GetStart() const;
+    [[nodiscard]] StatePtr GetAccept() const;
 
 private:
-    std::unique_ptr<class NFAImpl> m_impl;
+    StatePtr m_start;
+    StatePtr m_accept;
 };
 
 using NFAPtr = std::shared_ptr<NFA>;

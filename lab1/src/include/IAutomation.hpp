@@ -6,7 +6,7 @@ using IAutomationPtr = std::shared_ptr<class IAutomation>;
 class IAutomation
 {
 public:
-    virtual ~IAutomation() = 0;
+    virtual ~IAutomation() = default;
     virtual bool Imitate(const std::string& regex) = 0;
 };
 

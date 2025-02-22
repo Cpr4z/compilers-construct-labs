@@ -1,125 +1,58 @@
 #include "NFA.hpp"
 
-#include <map>
-#include <vector>
-#include <queue>
-#include <ranges>
-
-struct State
+NFA::NFA(StatePtr start, StatePtr accept) : m_start(std::move(start)), m_accept(std::move(accept))
 {
-    explicit State(StateId id, bool isFinal) : m_id(id), m_isFinal(isFinal) {}
 
-    bool operator<(const State& other) const
-    {
-        return m_id < other.m_id;
-    }
-
-    StateId m_id = 0;
-    bool m_isFinal = false;
-    std::map<Token, std::vector<StatePtr>> m_transitions;
-};
-
-struct StateComparator
-{
-    bool operator()(const StatePtr& lhs, const StatePtr& rhs) const
-    {
-        return lhs->m_id < rhs->m_id;
-    }
-};
-
-class NFAImpl
-{
-public:
-    NFAImpl() = default;
-    ~NFAImpl() = default;
-
-    void init(const StatePtr& start, const StatePtr& accept);
-    bool imitate(const std::string& regex);
-    void addTransition(StatePtr& first, const StatePtr& second, Token tkn);
-    StatePtr createState(StateId id, bool isFinal);
-    std::set<State> getStates() const;
-
-    StatePtr getStart() const { return m_start; }
-    StatePtr getAccept() const { return m_accept; }
-
-public:
-
-//    struct State
-//    {
-//        friend class NFAImpl;
-//        StateId m_id = 0;
-//        bool m_isFinal = false;
-//        std::map<StateId, std::map<Token, std::vector<State>>> m_transitions;
-//    };
-
-    StatePtr m_start;
-    StatePtr m_accept;
-};
-
-void NFAImpl::init(const StatePtr& start, const StatePtr& accept)
-{
-    m_start = start;
-    m_accept = accept;
 }
 
-bool NFAImpl::imitate(const std::string& regex)
+bool NFA::Imitate(const std::string& regex)
 {
     // to do
+
+    return true;
 }
 
-void NFAImpl::addTransition(StatePtr& first, const StatePtr& second, Token tkn)
+NFAPtr NFA::CreateBaseAutomat(const std::string& token, StateId& id)
 {
-    first->m_transitions[tkn].push_back(second);
+    m_start = CreateState(id++);
+    m_accept = CreateState(id++);
+    m_start->m_transitions[token[0]].push_back(m_accept);
+    return std::make_shared<NFA>(m_start, m_accept);
 }
 
-StatePtr NFAImpl::createState(StateId id, bool isFinal)
+NFAPtr NFA::CreateConcatAutomat(const NFAPtr& first, const NFAPtr& second)
 {
-    return std::make_shared<State>(id, isFinal);
+    first->m_accept->m_transitions['E'].push_back(second->m_start);
+    return std::make_shared<NFA>(first->m_start, second->m_accept);
 }
 
-std::set<State> NFAImpl::getStates() const
+NFAPtr NFA::CreateKleeneAutomat(const NFAPtr& first, StateId& id)
 {
-    std::queue<StatePtr> queue;
-    std::map<StateId, StatePtr> visited;
+    m_start = CreateState(id++);
+    m_accept = CreateState(id++);
+    m_start->m_transitions['E'].push_back(first->m_start);
+    m_start->m_transitions['E'].push_back(m_accept);
+    first->m_accept->m_transitions['E'].push_back(m_accept);
+    first->m_accept->m_transitions['E'].push_back(first->m_start);
 
-    queue.push(getStart());
-    visited.emplace(getStart()->m_id, getStart());
-
-    while (!queue.empty())
-    {
-        StatePtr current = queue.front();
-        queue.pop();
-        for (const auto& [symbol, nextStates] : current->m_transitions)
-        {
-            for (const auto& nextState: nextStates)
-            {
-                if (visited.find(nextState->m_id) != visited.end())
-                {
-                    visited.emplace(nextState->m_id, nextState);
-                    queue.push(nextState);
-                }
-            }
-        }
-    }
-
-    // to do replace to c++20 ranges
-    //std::set<State> states(visited | std::views::values);
-    std::set<State> states;
-    for (const auto& [key, value]: visited)
-    {
-        states.insert(*value);
-    }
-
-    return states;
-}
-//////////////////////////////////////////////////////////////////////////////
-
-NFA::NFA(): m_impl(std::make_unique<NFAImpl>())
-{
+    return std::make_shared<NFA>(m_start, m_accept);
 }
 
-NFA::~NFA()
+NFAPtr NFA::CreateAlternateAutomat(const NFAPtr& first, const NFAPtr& second, StateId& id)
 {
+    m_start = CreateState(id++);
+    m_accept = CreateState(id++);
+    m_start->m_transitions['E'].push_back(first->m_start);
+    m_start->m_transitions['E'].push_back(second->m_start);
+    first->m_accept->m_transitions['E'].push_back(m_accept);
+    second->m_accept->m_transitions['E'].push_back(m_accept);
+
+    return std::make_shared<NFA>(m_start, m_accept);
+}
+
+StatePtr NFA::CreateState(StateId id)
+{
+    return std::make_shared<State>(id);
 }
 
 NFAPtr NFA::Instance()
@@ -127,32 +60,12 @@ NFAPtr NFA::Instance()
     return std::make_shared<NFA>();
 }
 
-bool NFA::Imitate(const std::string& regex)
-{
-    return m_impl->imitate(regex);
-}
-
-void NFA::Init(const StatePtr& start, const StatePtr& accept)
-{
-    m_impl->init(start, accept);
-}
-
-void NFA::AddTransition(StatePtr& first, const StatePtr& second, Token tkn)
-{
-    m_impl->addTransition(first, second, tkn);
-}
-
-StatePtr NFA::CreateState(StateId id, bool isFinal)
-{
-    return m_impl->createState(id, isFinal);
-}
-
 StatePtr NFA::GetStart() const
 {
-    return m_impl->getStart();
+    return m_start;
 }
 
 StatePtr NFA::GetAccept() const
 {
-    return m_impl->getAccept();
+    return m_accept;
 }

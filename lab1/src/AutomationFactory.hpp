@@ -1,20 +1,11 @@
 #pragma once
 
 #include "IAutomationFactory.hpp"
-
-namespace AutomationType
-{
-enum e
-{
-    NFA, FIRST = NFA,
-    DFA,
-    COUNT
-};
-}
+#include "Utils.h"
 
 class AutomationFactory
 {
 public:
-    static IAutomationFactoryPtr CreateStateMachineFactory(AutomationType::e type);
+    static IAutomationFactoryPtr CreateStateMachineFactory(utils::AutomationType::e type);
 };
 

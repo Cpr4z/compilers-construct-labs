@@ -4,10 +4,12 @@
 class DFA: public IAutomation
 {
 public:
+    //DFA(const NFAPtr&);
     ~DFA() = default;
-    DFA(const NFAPtr&);
     bool Imitate(const std::string& regex) override;
 
 
 private:
 };
+
+using DFAPtr = std::shared_ptr<DFA>;

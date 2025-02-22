@@ -3,12 +3,12 @@
 #include "DFAFactory.hpp"
 #include "NFAFactory.hpp"
 
-IAutomationFactoryPtr AutomationFactory::CreateStateMachineFactory(AutomationType::e type)
+IAutomationFactoryPtr AutomationFactory::CreateStateMachineFactory(utils::AutomationType::e type)
 {
     switch(type)
     {
-        case AutomationType::NFA: return std::make_shared<NFAFactory>();
-        case AutomationType::DFA: return std::make_shared<DFAFactory>();
+        case utils::AutomationType::NFA: return std::make_shared<NFAFactory>();
+        case utils::AutomationType::DFA: return std::make_shared<DFAFactory>();
         default: return {};
     }
 }

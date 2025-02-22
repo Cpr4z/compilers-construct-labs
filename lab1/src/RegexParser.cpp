@@ -1,7 +1,7 @@
 #include "Utils.h"
 #include "AutomationFactory.hpp"
 #include "NFABuilder.hpp"
-
+#include "NFA.hpp"
 #include <string>
 #include <iostream>
 
@@ -12,17 +12,33 @@ int main()
     std::string input;
 
     std::cout << "Please, enter regular expression" << std::endl;
-    std::getline(std::cin, regex);
-
-    TokensSequence polishedSequence = utils::preprocessing::validateRegex(regex);
-
-    IAutomationFactoryPtr factory = AutomationFactory::CreateStateMachineFactory(AutomationType::NFA);
-    IAutomationBuilderPtr builder = factory->CreateStateMachineBuilder();
-
-    if (const auto& nfaBuilder = std::dynamic_pointer_cast<NFABuilder>(builder); nfaBuilder)
+    // a+
+    // a*b
+    // a*
+    // a|b
+    // (a|b).a*
+    // (a|b)*abb
+    while (std::getline(std::cin, regex))
     {
-        nfaBuilder->Init(polishedSequence);
-        nfaBuilder->Build();
+        TokensSequence polishedSequence = utils::preprocessing::validateRegex(regex);
+
+        IAutomationFactoryPtr factory = AutomationFactory::CreateStateMachineFactory(utils::AutomationType::e::NFA);
+        IAutomationBuilderPtr builder = factory->CreateStateMachineBuilder();
+
+        if (const auto& nfaBuilder = std::dynamic_pointer_cast<NFABuilder>(builder); nfaBuilder)
+        {
+            nfaBuilder->Init(polishedSequence);
+            IAutomationPtr nfa = nfaBuilder->Build();
+            IAutomationVizuPtr vizu = factory->CreateStateMachineVizualizator();
+            try
+            {
+                vizu->CreateVizu(nfa);
+            }
+            catch(const std::runtime_error& ex)
+            {
+
+            }
+        }
     }
 
 

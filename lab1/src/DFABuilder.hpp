@@ -5,8 +5,6 @@
 class DFABuilder: public IAutomationBuilder
 {
 public:
-    DFABuilder() = default;
-    ~DFABuilder() = default;
     IAutomationPtr Build() override;
 private:
 
