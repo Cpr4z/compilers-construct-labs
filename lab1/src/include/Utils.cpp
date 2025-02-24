@@ -6,6 +6,8 @@
 
 #include "boost/bimap.hpp"
 
+#include <iostream>
+
 
 namespace utils
 {
@@ -85,10 +87,11 @@ bool isValidRegex(std::string& regex)
 void preprocessRegex(std::string& regex)
 {
     //replace + to .*
+    // a+ -> a.a*
     size_t pos = 0;
     while ((pos = regex.find('+', pos)) != std::string::npos)
     {
-        regex.replace(pos, 1, ".*");
+        regex.replace(pos, 1, std::format(".{}*", regex[pos-1]));
         pos += 2;
     }
 
@@ -127,6 +130,7 @@ void preprocessRegex(std::string& regex)
             ++current;
         }
     }
+//    std::cout << regex << std::endl;
 }
 
 bool isOperator(Token tkn)
@@ -178,7 +182,7 @@ bool isOperator(Token tkn)
     return result;
 }
 
-[[nodiscard]] TokensSequence validateRegex(std::string& regex)
+[[nodiscard]] TokensSequence validateRegex(std::string&& regex)
 {
     if (isValidRegex(regex))
     {

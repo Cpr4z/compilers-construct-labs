@@ -5,15 +5,22 @@
 #include <vector>
 
 using StateId = size_t;
-using Token_ = char32_t;
-
 using StatePtr = std::shared_ptr<class State>;
 
 struct State
 {
     explicit State(StateId id): m_id(id) {}
+    explicit State(StateId id, bool isFinal): m_id(id), m_isFinal(isFinal) {}
 
     StateId m_id;
-    //std::map<Token_, std::vector<std::shared_ptr<State>>> m_transitions;
-    std::map<std::string_view, std::vector<StatePtr>> m_transitions;
+    bool m_isFinal = false;
+    std::map<std::string, std::vector<StatePtr>> m_transitions;
+};
+
+struct StateComparator
+{
+    bool operator()(const StatePtr& lhs, const StatePtr& rhs) const
+    {
+        return lhs->m_id < rhs->m_id;
+    }
 };

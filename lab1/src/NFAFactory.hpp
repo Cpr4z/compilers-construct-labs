@@ -7,3 +7,5 @@ public:
     IAutomationBuilderPtr CreateStateMachineBuilder() override;
     IAutomationVizuPtr CreateStateMachineVizualizator() override;
 };
+
+using NFAFactoryPtr = std::shared_ptr<NFAFactory>;

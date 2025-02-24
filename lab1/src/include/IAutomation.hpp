@@ -5,10 +5,8 @@ class IAutomation
 {
 public:
     virtual ~IAutomation() = default;
-    virtual bool Imitate(const std::string& regex) = 0;
+    virtual bool Imitate(std::string&& input) = 0;
 };
 
-using IAutomationPtr = std::shared_ptr<class IAutomation>;
-
-
+using IAutomationPtr = std::shared_ptr<IAutomation>;
 

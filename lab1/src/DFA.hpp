@@ -6,7 +6,7 @@ class DFA: public IAutomation
 public:
     //DFA(const NFAPtr&);
     ~DFA() = default;
-    bool Imitate(const std::string& regex) override;
+    bool Imitate(std::string&& regex) override;
 
 
 private:

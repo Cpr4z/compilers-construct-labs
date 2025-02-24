@@ -58,8 +58,7 @@ void AutomationVizualizator::CreateVizu(const IAutomationPtr& machine)
         file << printAutomat(start, visited);
 
         StatePtr accept = nfa->GetAccept();
-        file << "  accept [shape=none, label=\"accept\"];\n";
-        file << "  accept -> " << accept->m_id << " [style=dashed];\n";
+        file << "   "<< accept->m_id  << " [shape=doublecircle];\n";
 
         file << "}\n";
         file.close();
@@ -124,7 +123,6 @@ std::string AutomationVizualizator::printAutomat(const StatePtr& state, std::set
         return {};
     }
     visited.insert(state->m_id);
-
     std::ostringstream out;
     for (auto& [symbol, nextStates]: state->m_transitions)
     {

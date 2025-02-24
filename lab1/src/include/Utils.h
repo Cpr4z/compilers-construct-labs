@@ -25,7 +25,7 @@ bool isValidRegex(std::string& regex);
 void preprocessRegex(std::string& regex);
 bool isOperator(Token tkn);
 [[nodiscard]] std::vector<std::string> toPostfix(const std::string& regex);
-[[nodiscard]] TokensSequence validateRegex(std::string& regex);
+[[nodiscard]] TokensSequence validateRegex(std::string&& regex);
 }
 
 namespace AutomationType

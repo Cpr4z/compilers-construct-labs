@@ -28,10 +28,13 @@ IAutomationPtr NFABuilderImpl::build()
     {
         if (token == ".")
         {
-            NFAPtr secondAutomat, firstAutomat;
-            if (nfaStack.pop(secondAutomat) && nfaStack.pop(firstAutomat))
+            if (nfaStack.size() > 1)
             {
-                nfaStack.emplace_back(nfa->CreateConcatAutomat(firstAutomat, secondAutomat));
+                NFAPtr secondAutomat, firstAutomat;
+                if (nfaStack.pop(secondAutomat) && nfaStack.pop(firstAutomat))
+                {
+                    nfaStack.emplace_back(nfa->CreateConcatAutomat(firstAutomat, secondAutomat));
+                }
             }
         }
         else if (token == "|")

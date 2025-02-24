@@ -3,20 +3,11 @@ project(cc_lab1)
 
 set(CMAKE_CXX_STANDARD 23)
 
-#set(BOOST_ROOT /Users/matvey_agarkov/Desktop/third_party/boost)
-
 find_package(Boost REQUIRED)
 
 include_directories(include)
 
-add_executable(lab1
-        RegexParser.cpp
-        include/Utils.h
-        include/Utils.cpp
-        #include/IAutomation.hpp
-        #include/IAutomationBuilder.hpp
-        #include/IAutomationFactory.hpp
-        #include/IAutomationVizu.hpp
+add_library(myLib STATIC
         AutomationFactory.hpp
         AutomationFactory.cpp
         NFAFactory.hpp
@@ -35,7 +26,19 @@ add_executable(lab1
         DFA.cpp
         MyStack.hpp
         NFA.hpp
-        include/State.hpp)
+        include/Utils.h
+        include/Utils.cpp
+)
 
-target_include_directories(lab1 PRIVATE ${Boost_INCLUDE_DIRS})
-target_link_libraries(lab1 PRIVATE ${Boost_LIBRARIES})
+add_executable(lab1
+        RegexParser.cpp
+)
+
+target_include_directories(myLib PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+        ${Boost_INCLUDE_DIRS}
+)
+
+target_link_libraries(myLib PRIVATE ${Boost_LIBRARIES})
+
+target_link_libraries(lab1 PRIVATE myLib)
