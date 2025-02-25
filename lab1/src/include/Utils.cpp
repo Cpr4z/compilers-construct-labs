@@ -104,6 +104,7 @@ void preprocessRegex(std::string& regex)
     {
         if ((std::isalpha(regex[prev]) && std::isalpha(regex[current])) ||
             (std::isalpha(regex[prev]) && (regex[current] == '(')) ||
+            ((isOperator(regex[prev]) && regex[prev] != '.') && regex[current] == '(') ||
             ((regex[prev] == ')') && std::isalpha(regex[current])))
         {
             regex.replace(prev, 2, std::format("{}.{}", regex[prev], regex[current]));
@@ -130,7 +131,6 @@ void preprocessRegex(std::string& regex)
             ++current;
         }
     }
-//    std::cout << regex << std::endl;
 }
 
 bool isOperator(Token tkn)

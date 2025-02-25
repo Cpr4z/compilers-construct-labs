@@ -3,11 +3,6 @@
 #include "NFABuilder.hpp"
 #include <string>
 #include <iostream>
-#include <ranges>
-#include <algorithm>
-
-
-
 
 int main()
 {
@@ -30,7 +25,6 @@ int main()
         }
 
         TokensSequence polishedSequence = utils::preprocessing::validateRegex(std::move(regex));
-        std::ranges::for_each(polishedSequence, [](const auto& token){std::cout << token;});
         IAutomationFactoryPtr factory = AutomationFactory::CreateStateMachineFactory(utils::AutomationType::e::NFA);
         IAutomationBuilderPtr builder = factory->CreateStateMachineBuilder();
 
@@ -39,11 +33,6 @@ int main()
             nfaBuilder->Init(std::move(polishedSequence));
             IAutomationPtr nfa = nfaBuilder->Build();
             IAutomationVizuPtr vizu = factory->CreateStateMachineVizualizator();
-
-            //a+.(a+.g+.f*|b+.(c*.(h|l+)|d+))
-            {
-                std::cout << nfa->Imitate("aaabh") << std::endl;
-            }
 
             try
             {

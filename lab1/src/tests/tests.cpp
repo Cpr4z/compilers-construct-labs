@@ -8,15 +8,10 @@
 #include "../NFABuilder.hpp"
 #include "../AutomationVizualizator.hpp"
 
-//#include <iostream>
-
 namespace bdata = boost::unit_test::data;
 
 TokensSequence preprocessingTest(std::string&& regex)
 {
-//    auto sequence = utils::preprocessing::validateRegex(std::move(regex));
-//    std::cout << sequence.size() << std::endl;
-//    return sequence;
     return utils::preprocessing::validateRegex(std::move(regex));
 }
 
@@ -141,18 +136,52 @@ BOOST_DATA_TEST_CASE(NFA_TestCase7_Invalid, bdata::make({"", "ab", "bc", "ac", "
     BOOST_CHECK(!fixture.Imitate(sample));
 }
 
-BOOST_DATA_TEST_CASE(NFA_TestCase8_Valid, bdata::make({"aaaggg", "aaaaaagggf", "aaaaaagggfffff", "aaabbbbbbh", "aaabbbbbcl", "aaabbbbccccch", "aaabbbbbbd", "aaabbbbbdddd"}))
+BOOST_DATA_TEST_CASE(NFA_TestCase8_Valid, bdata::make({"cagd", "cbgd", "ccccbbggd", "cbbbbbbd", "cccad"}))
+{
+    NFATestFixture fixture("c*(a|b*)g*d");
+    BOOST_CHECK(fixture.Imitate(sample));
+}
+
+BOOST_DATA_TEST_CASE(NFA_TestCase8_Invalid, bdata::make({"aagd", "ccbh", "cbgbg"}))
+{
+    NFATestFixture fixture("c*(a|b*)g*d");
+    BOOST_CHECK(!fixture.Imitate(sample));
+}
+
+BOOST_DATA_TEST_CASE(NFA_TestCase9_Valid, bdata::make({"aaabh", "aaaggg", "aaaaaagggf", "aaaaaagggfffff", "aaabbbbbbh", "aaabbbbbcl", "aaabbbbccccch", "aaabbbbbbd", "aaabbbbbdddd"}))
 {
     NFATestFixture fixture("a+.(a+.g+.f*|b+.(c*.(h|l+)|d+))");
     BOOST_CHECK(fixture.Imitate(sample));
 }
 
-BOOST_DATA_TEST_CASE(NFA_TestCase8_Invalid, bdata::make({"g", "a", "aggg", "abbbb", "aaabh", "aaabbbbcc", "aaaaaaabbc", "aaabbclh", "aaadddd"}))
+BOOST_DATA_TEST_CASE(NFA_TestCase9_Invalid, bdata::make({"g", "a", "aggg", "abbbb", "aaabbbbcc", "aaaaaaabbc", "aaabbclh", "aaadddd"}))
 {
-    // aaabh
     NFATestFixture fixture("a+.(a+.g+.f*|b+.(c*.(h|l+)|d+))");
     BOOST_CHECK(!fixture.Imitate(sample));
 }
 
+BOOST_DATA_TEST_CASE(NFA_TestCase10_Valid, bdata::make({"mmnoprrrs", "mnoprs"}))
+{
+    NFATestFixture fixture("(m|n)*op+(q|r*)s");
+    BOOST_CHECK(fixture.Imitate(sample));
+}
+
+BOOST_DATA_TEST_CASE(NFA_TestCase10_Invalid, bdata::make({"opr", "opxqs", "oopqq", "ooprrrs", "opqrs", "nnooprs"}))
+{
+    NFATestFixture fixture("(m|n)*op+(q|r*)s");
+    BOOST_CHECK(!fixture.Imitate(sample));
+}
+
+BOOST_DATA_TEST_CASE(NFA_TestCase11_Valid, bdata::make({"ad", "bccef", "bbbcdgg", "bccccccd", "aefg", "bbbbcceffffg", "bbcefggggg"}))
+{
+    NFATestFixture fixture("(a|b+).c*(d|ef+).g*");
+    BOOST_CHECK(fixture.Imitate(sample));
+}
+
+BOOST_DATA_TEST_CASE(NFA_TestCase11_Invalid, bdata::make({"d", "c", "bccdd", "abg", "bcdh", "aaefg"}))
+{
+    NFATestFixture fixture("(a|b+).c*(d|ef+).g*");
+    BOOST_CHECK(!fixture.Imitate(sample));
+}
 
 BOOST_AUTO_TEST_SUITE_END()
