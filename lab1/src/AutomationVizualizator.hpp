@@ -13,7 +13,7 @@ public:
 
 private:
     void FromDotToPng(const fs_path& dot); // noexcept(false) ??
-    std::string printAutomat(const StatePtr& state, std::set<StateId>& visited);
+    std::string printAutomat(const NFAStatePtr& state, std::set<StateId>& visited);
     void cleanDirs() const;
     [[nodiscard]] fs_path GeneratePath(utils::VizuType::FileType::e) const;
 

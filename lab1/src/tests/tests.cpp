@@ -184,4 +184,16 @@ BOOST_DATA_TEST_CASE(NFA_TestCase11_Invalid, bdata::make({"d", "c", "bccdd", "ab
     BOOST_CHECK(!fixture.Imitate(sample));
 }
 
+BOOST_DATA_TEST_CASE(NFA_TestCase12_Valid, bdata::make({"vv", "vvvv", "aavv", "bbbbvv", "vvv", "ccvvv",}))
+{
+    NFATestFixture fixture("(aa|bb|cc)*vv+");
+    BOOST_CHECK(fixture.Imitate(sample));
+}
+
+BOOST_DATA_TEST_CASE(NFA_TestCase12_Invalid, bdata::make({"ba", ""}))
+{
+    NFATestFixture fixture("(aa|bb|cc)*vv+");
+    BOOST_CHECK(!fixture.Imitate(sample));
+}
+
 BOOST_AUTO_TEST_SUITE_END()

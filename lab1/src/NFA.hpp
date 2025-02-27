@@ -2,18 +2,18 @@
 
 #include <set>
 
-#include <State.hpp>
+#include <NFAState.hpp>
 
 #include "IAutomation.hpp"
 
-using StateSet = std::set<StatePtr, StateComparator>;
+using StateSet = std::set<NFAStatePtr, NFAStateComparator>;
 using NFAPtr = std::shared_ptr<class NFA>;
 
 class NFA : public IAutomation
 {
 public:
     NFA() = default;
-    NFA(StatePtr start, StatePtr accept);
+    NFA(NFAStatePtr start, NFAStatePtr accept);
 
     // IAutomation
     bool Imitate(std::string&& input) override;
@@ -24,15 +24,14 @@ public:
     [[nodiscard]] NFAPtr CreateConcatAutomat(const NFAPtr& first, const NFAPtr& second);
     [[nodiscard]] NFAPtr CreateKleeneAutomat(const NFAPtr& first, StateId& id);
     [[nodiscard]] NFAPtr CreateAlternateAutomat(const NFAPtr& first, const NFAPtr& second, StateId& id);
-    [[nodiscard]] StatePtr CreateState(StateId);
-    [[nodiscard]] StatePtr CreateState(StateId, bool);
-    [[nodiscard]] StatePtr GetStart() const;
-    [[nodiscard]] StatePtr GetAccept() const;
+    [[nodiscard]] NFAStatePtr CreateState(StateId);
+    [[nodiscard]] NFAStatePtr CreateState(StateId, bool);
+    [[nodiscard]] NFAStatePtr GetStart() const;
+    [[nodiscard]] NFAStatePtr GetAccept() const;
 
 private:
-    StateSet GetEpsilonClosure(const StateSet&) const;
-
-private:
-    StatePtr m_start;
-    StatePtr m_accept;
+    NFAStatePtr m_start;
+    NFAStatePtr m_accept;
 };
+
+using NFAWPtr = std::weak_ptr<NFA>;

@@ -3,28 +3,28 @@
 #include <ranges>
 #include <algorithm>
 
-#include "MyStack.hpp"
+#include "Utils.h"
 
-//to do string_view
-const std::string EPSILON = "eps";
+using namespace utils::tokenConstants;
 
-NFA::NFA(StatePtr start, StatePtr accept) : m_start(std::move(start)), m_accept(std::move(accept))
+NFA::NFA(NFAStatePtr start, NFAStatePtr accept) : m_start(std::move(start)), m_accept(std::move(accept))
 {
 }
 
 bool NFA::Imitate(std::string&& input)
 {
-    StateSet currentStates(StateComparator{});
-    currentStates = GetEpsilonClosure({m_start});
+    StateSet currentStates(NFAStateComparator{});
+    currentStates.insert(m_start);
+    currentStates = utils::Transformation::GetEpsilonClosure(currentStates);
 
-    for (auto&& sv : input | std::views::transform([](char c) {
-        return std::string(&c, 1);
+    for (auto&& str : input | std::views::transform([](char c) {
+        return std::string(c, 1);
     }))
     {
-        StateSet nextStates(StateComparator{});
+        StateSet nextStates(NFAStateComparator{});
         for (const auto& state : currentStates)
         {
-            auto it = state->m_transitions.find(sv);
+            auto it = state->m_transitions.find(str);
             if (it != state->m_transitions.end())
             {
                 for (const auto& nextState : it->second)
@@ -34,7 +34,7 @@ bool NFA::Imitate(std::string&& input)
             }
         }
 
-        currentStates = GetEpsilonClosure(nextStates);
+        currentStates = utils::Transformation::GetEpsilonClosure(nextStates);
         if (currentStates.empty())
         {
             return false;
@@ -84,14 +84,14 @@ NFAPtr NFA::CreateAlternateAutomat(const NFAPtr& first, const NFAPtr& second, St
     return std::make_shared<NFA>(m_start, m_accept);
 }
 
-StatePtr NFA::CreateState(StateId id)
+NFAStatePtr NFA::CreateState(StateId id)
 {
-    return std::make_shared<State>(id);
+    return std::make_shared<NFAState>(id);
 }
 
-StatePtr NFA::CreateState(StateId id, bool isFinal)
+NFAStatePtr NFA::CreateState(StateId id, bool isFinal)
 {
-    return std::make_shared<State>(id, isFinal);
+    return std::make_shared<NFAState>(id, isFinal);
 }
 
 NFAPtr NFA::Instance()
@@ -99,44 +99,12 @@ NFAPtr NFA::Instance()
     return std::make_shared<NFA>();
 }
 
-StatePtr NFA::GetStart() const
+NFAStatePtr NFA::GetStart() const
 {
     return m_start;
 }
 
-StatePtr NFA::GetAccept() const
+NFAStatePtr NFA::GetAccept() const
 {
     return m_accept;
-}
-
-StateSet NFA::GetEpsilonClosure(const StateSet& states) const
-{
-    StateSet closure = states;
-    MyStack<StatePtr> stack;
-
-    for (const auto& state: states)
-    {
-        stack.push(state);
-    }
-
-    while (!stack.empty())
-    {
-        StatePtr state;
-        if (stack.pop(state))
-        {
-            auto it = state->m_transitions.find(EPSILON);
-            if (it != state->m_transitions.end())
-            {
-                for (const auto& nextState : it->second)
-                {
-                    if (closure.find(nextState) == closure.end())
-                    {
-                        closure.insert(nextState);
-                        stack.push(nextState);
-                    }
-                }
-            }
-        }
-    }
-    return closure;
 }

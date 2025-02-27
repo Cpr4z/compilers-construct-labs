@@ -1,8 +1,11 @@
 #include "Utils.h"
 #include "AutomationFactory.hpp"
 #include "NFABuilder.hpp"
+#include "DFABuilder.hpp"
 #include <string>
 #include <iostream>
+
+#include <algorithm>
 
 int main()
 {
@@ -25,6 +28,7 @@ int main()
         }
 
         TokensSequence polishedSequence = utils::preprocessing::validateRegex(std::move(regex));
+        std::ranges::for_each(polishedSequence, [](const auto& token){std::cout << token;});
         IAutomationFactoryPtr factory = AutomationFactory::CreateStateMachineFactory(utils::AutomationType::e::NFA);
         IAutomationBuilderPtr builder = factory->CreateStateMachineBuilder();
 
@@ -42,16 +46,19 @@ int main()
             {
 
             }
+
+            factory = AutomationFactory::CreateStateMachineFactory(utils::AutomationType::DFA);
+            builder = factory->CreateStateMachineBuilder();
+
+            if (const DFABuilderPtr& dfaBuilder = std::dynamic_pointer_cast<DFABuilder>(builder))
+            {
+                if (const NFAPtr& nfaPtr = std::dynamic_pointer_cast<NFA>(nfa))
+                {
+                    dfaBuilder->Init(nfaPtr);
+                    IAutomationPtr dfa = dfaBuilder->Build();
+                }
+            }
         }
     }
-
-
-//a*b
-//a+
-//a*
-//a|b
-//(a|b)*abb
-
-
     return 0;
 }

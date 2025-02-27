@@ -50,14 +50,14 @@ void AutomationVizualizator::CreateVizu(const IAutomationPtr& machine)
         file << "    rankdir=LR;";
         file << "    node [shape=circle];";
 
-        StatePtr start = nfa->GetStart();
+        NFAStatePtr start = nfa->GetStart();
         file << "  start [shape=none, label=\"start\"];\n";
         file << "  start -> " << start->m_id << " [style=dashed];\n";
 
         std::set<StateId> visited;
         file << printAutomat(start, visited);
 
-        StatePtr accept = nfa->GetAccept();
+        NFAStatePtr accept = nfa->GetAccept();
         file << "   "<< accept->m_id  << " [shape=doublecircle];\n";
 
         file << "}\n";
@@ -116,7 +116,7 @@ fs_path AutomationVizualizator::GeneratePath(VizuType::FileType::e type) const
     return targetDir;
 }
 
-std::string AutomationVizualizator::printAutomat(const StatePtr& state, std::set<StateId>& visited)
+std::string AutomationVizualizator::printAutomat(const NFAStatePtr& state, std::set<StateId>& visited)
 {
     if (visited.contains(state->m_id))
     {
@@ -126,7 +126,7 @@ std::string AutomationVizualizator::printAutomat(const StatePtr& state, std::set
     std::ostringstream out;
     for (auto& [symbol, nextStates]: state->m_transitions)
     {
-        for (StatePtr& nextState: nextStates)
+        for (NFAStatePtr& nextState: nextStates)
         {
             out << "    " << state->m_id << " -> " << nextState->m_id
              << " [label=\"" << symbol << "\"];\n";

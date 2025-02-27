@@ -4,10 +4,11 @@
 #include <map>
 #include <set>
 
+#include "../MyStack.hpp"
+
 #include "boost/bimap.hpp"
 
 #include <iostream>
-
 
 namespace utils
 {
@@ -234,6 +235,43 @@ std::string_view getInfo(FileType::e type, InfoType::e infoType)
     }
     return {};
 }
+}
+
+namespace Transformation
+{
+//    extern const std::string EPSILON;
+
+    NFAStateSet GetEpsilonClosure(NFAStateSet& states)
+    {
+        NFAStateSet closure = states;
+        MyStack<NFAStatePtr> stack;
+
+        for (const auto& state: states)
+        {
+            stack.push(state);
+        }
+
+        while (!stack.empty())
+        {
+            NFAStatePtr state;
+            if (stack.pop(state))
+            {
+                auto it = state->m_transitions.find(tokenConstants::EPSILON);
+                if (it != state->m_transitions.end())
+                {
+                    for (const auto& nextState : it->second)
+                    {
+                        if (closure.find(nextState) == closure.end())
+                        {
+                            closure.insert(nextState);
+                            stack.push(nextState);
+                        }
+                    }
+                }
+            }
+        }
+        return closure;
+    }
 }
 
 }

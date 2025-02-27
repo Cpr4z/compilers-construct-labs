@@ -7,8 +7,6 @@
 #include "MyStack.hpp"
 #include "NFA.hpp"
 
-//constexpr Token EPSILON = 'E';
-
 class NFABuilderImpl
 {
 public:

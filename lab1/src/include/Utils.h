@@ -1,6 +1,9 @@
 #pragma once
 
-#include <vector>
+#include <set>
+#include <type_traits>
+
+#include "NFAState.hpp"
 
 using OperatorPriority = size_t;
 using Token = char;
@@ -10,6 +13,8 @@ namespace utils
 {
 namespace tokenConstants
 {
+const std::string EPSILON = "eps";
+
 auto getOtherTokens();
 auto getAlphabet();
 auto getOperations();
@@ -84,5 +89,45 @@ namespace ext
 }
 
 std::string_view getInfo(FileType::e type, InfoType::e infoType);
+}
+
+namespace Transformation
+{
+    using NFAStateSet = std::set<NFAStatePtr, NFAStateComparator>;
+
+    NFAStateSet GetEpsilonClosure(NFAStateSet& states);
+
+    template <typename, typename = std::void_t<>>
+    struct has_key_compare : std::false_type {};
+
+    template <typename T>
+    struct has_key_compare<T, std::void_t<typename T::key_compare>> : std::true_type{};
+
+    template <typename ContainerType, bool HasComparator = has_key_compare<ContainerType>::value>
+    struct ToSetHelp;
+
+    template <typename ContainerType>
+    struct ToSetHelp<ContainerType, false> {
+        static std::set<typename ContainerType::value_type> convert(const ContainerType& container)
+        {
+            return std::set<typename ContainerType::value_type>(container.begin(), container.end());
+        }
+    };
+
+    template <typename ContainerType>
+    struct ToSetHelp<ContainerType, true> {
+        static std::set<typename ContainerType::value_type, typename ContainerType::key_compare>
+                convert (const ContainerType& container)
+        {
+            return std::set<typename ContainerType::value_type, typename ContainerType::key_compare>(
+                    container.begin(), container.end(), container.key_comp());
+        }
+    };
+
+    template<typename ContainerType>
+    auto ToSet(const ContainerType& container)
+    {
+        return ToSetHelp<ContainerType>::convert(container);
+    }
 }
 }
