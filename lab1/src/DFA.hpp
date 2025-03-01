@@ -16,6 +16,7 @@ public:
     [[nodiscard]] DFAStatePtr CreateState(StateId id, bool isFinal);
 
     void SetStart(const DFAStatePtr& start) { m_start = start;};
+    [[nodiscard]] DFAStatePtr GetStart() const { return m_start; }
 
 private:
     DFAStatePtr m_start;

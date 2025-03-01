@@ -2,7 +2,9 @@
 
 #include <map>
 #include <memory>
-#include <vector>
+//#include <vector>
+#include <string>
+#include <set>
 
 using StateId = size_t;
 using NFAStatePtr = std::shared_ptr<class NFAState>;
@@ -14,7 +16,8 @@ struct NFAState
 
     StateId m_id = 0;
     bool m_isFinal = false;
-    std::map<std::string, std::vector<NFAStatePtr>> m_transitions;
+//    std::map<std::string, std::vector<NFAStatePtr>> m_transitions;
+    std::map<std::string, std::set<NFAStatePtr, struct NFAStateComparator>> m_transitions;
 };
 
 struct NFAStateComparator

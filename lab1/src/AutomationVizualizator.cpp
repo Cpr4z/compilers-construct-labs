@@ -4,7 +4,7 @@
 
 #include <fstream>
 #include <format>
-#include <iostream>
+//#include <iostream>
 
 #include <sstream>
 
@@ -33,13 +33,19 @@ void AutomationVizualizator::cleanDirs() const
 
 void AutomationVizualizator::CreateVizu(const IAutomationPtr& machine)
 {
-    cleanDirs();
+    if (!m_countDot && !m_countPng)
+    {
+        cleanDirs();
+    }
+
     fs_path path = GeneratePath(VizuType::FileType::DOT);
     std::string_view ext = utils::VizuType::getInfo(VizuType::FileType::DOT, VizuType::InfoType::EXT);
     fs_path targetPath;
+    utils::AutomationType::e autoType;
     if (const NFAPtr& nfa = std::dynamic_pointer_cast<NFA>(machine))
     {
-        targetPath = std::format("{}/{}{}{}", path.string(), AutomationType::getFileNameByType(AutomationType::NFA), ++m_countDot, ext);
+        autoType = AutomationType::NFA;
+        targetPath = std::format("{}/{}{}{}", path.string(), AutomationType::getFileNameByType(autoType), ++m_countDot, ext);
         std::ofstream file(targetPath);
         if (!file.is_open())
         {
@@ -50,24 +56,47 @@ void AutomationVizualizator::CreateVizu(const IAutomationPtr& machine)
         file << "    rankdir=LR;";
         file << "    node [shape=circle];";
 
-        NFAStatePtr start = nfa->GetStart();
+        const NFAStatePtr start = nfa->GetStart();
         file << "  start [shape=none, label=\"start\"];\n";
         file << "  start -> " << start->m_id << " [style=dashed];\n";
 
         std::set<StateId> visited;
         file << printAutomat(start, visited);
 
-        NFAStatePtr accept = nfa->GetAccept();
+        const NFAStatePtr accept = nfa->GetAccept();
         file << "   "<< accept->m_id  << " [shape=doublecircle];\n";
 
         file << "}\n";
         file.close();
 
-        FromDotToPng(targetPath);
+        FromDotToPng(targetPath, autoType);
     }
     else if (const DFAPtr& dfa = std::dynamic_pointer_cast<DFA>(machine))
     {
-        targetPath = std::format("{}{}{}{}", path.string(), AutomationType::getFileNameByType(AutomationType::DFA), ++m_countPng, ext);
+        autoType = AutomationType::DFA;
+        targetPath = std::format("{}/{}{}{}", path.string(), AutomationType::getFileNameByType(autoType), ++m_countDot, ext);
+        std::ofstream file(targetPath);
+        if (!file.is_open())
+        {
+            return;
+        }
+
+        file << "digraph FiniteStateMachine {";
+        file << "    rankdir=LR;";
+        file << "    node [shape=circle];";
+
+        const DFAStatePtr start = dfa->GetStart();
+        file << "  start [shape=none, label=\"start\"];\n";
+        file << "  start -> " << start->m_id << " [style=dashed];\n";
+
+        std::set<StateId> visited;
+        file << printAutomat(start, visited);
+
+        file << "}\n";
+        file.close();
+
+        FromDotToPng(targetPath, autoType);
+
     }
     else
     {
@@ -75,11 +104,11 @@ void AutomationVizualizator::CreateVizu(const IAutomationPtr& machine)
     }
 }
 
-void AutomationVizualizator::FromDotToPng(const fs_path& dot)
+void AutomationVizualizator::FromDotToPng(const fs_path& dot, utils::AutomationType::e type)
 {
     fs_path path = GeneratePath(VizuType::FileType::PNG);
     std::string_view ext = utils::VizuType::getInfo(VizuType::FileType::PNG, VizuType::InfoType::EXT);
-    fs_path targetPath = std::format("{}/{}{}{}", path.string(), AutomationType::getFileNameByType(AutomationType::NFA), ++m_countPng, ext);
+    fs_path targetPath = std::format("{}/{}{}{}", path.string(), AutomationType::getFileNameByType(type), ++m_countPng, ext);
     std::ofstream file(targetPath);
 
     if (!file.is_open())
@@ -124,14 +153,40 @@ std::string AutomationVizualizator::printAutomat(const NFAStatePtr& state, std::
     }
     visited.insert(state->m_id);
     std::ostringstream out;
-    for (auto& [symbol, nextStates]: state->m_transitions)
+    for (const auto& [symbol, nextStates]: state->m_transitions)
     {
-        for (NFAStatePtr& nextState: nextStates)
+        for (const NFAStatePtr& nextState: nextStates)
         {
             out << "    " << state->m_id << " -> " << nextState->m_id
              << " [label=\"" << symbol << "\"];\n";
             out << printAutomat(nextState, visited);
         }
+    }
+    return out.str();
+}
+
+std::string AutomationVizualizator::printAutomat(const DFAStatePtr& state, std::set<StateId>& visited)
+{
+    if (visited.contains(state->m_id))
+    {
+        return {};
+    }
+    visited.insert(state->m_id);
+    std::ostringstream out;
+    for (const auto& [symbol, nextState]: state->m_transitions)
+    {
+        if (state->m_isFinal)
+        {
+            out << "   "<< state->m_id  << " [shape=doublecircle];\n";
+            out << "   "<< state->m_id << " -> " << nextState->m_id
+            << " [label=\"" << symbol << "\"];\n";
+        }
+        else
+        {
+            out << "    " << state->m_id << " -> " << nextState->m_id
+                << " [label=\"" << symbol << "\"];\n";
+        }
+        out << printAutomat(nextState, visited);
     }
     return out.str();
 }

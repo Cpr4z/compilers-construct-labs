@@ -17,8 +17,8 @@ bool NFA::Imitate(std::string&& input)
     currentStates.insert(m_start);
     currentStates = utils::Transformation::GetEpsilonClosure(currentStates);
 
-    for (auto&& str : input | std::views::transform([](char c) {
-        return std::string(c, 1);
+    for (auto&& str : input | std::views::transform([](char token) {
+        return std::string{token};
     }))
     {
         StateSet nextStates(NFAStateComparator{});
@@ -48,13 +48,13 @@ NFAPtr NFA::CreateBaseAutomat(const std::string& token, StateId& id)
 {
     m_start = CreateState(id++);
     m_accept = CreateState(id++, true);
-    m_start->m_transitions[token].push_back(m_accept);
+    m_start->m_transitions[token].insert(m_accept);
     return std::make_shared<NFA>(m_start, m_accept);
 }
 
 NFAPtr NFA::CreateConcatAutomat(const NFAPtr& first, const NFAPtr& second)
 {
-    first->m_accept->m_transitions[EPSILON].push_back(second->m_start);
+    first->m_accept->m_transitions[EPSILON].insert(second->m_start);
     first->m_accept->m_isFinal = false;
     return std::make_shared<NFA>(first->m_start, second->m_accept);
 }
@@ -63,10 +63,10 @@ NFAPtr NFA::CreateKleeneAutomat(const NFAPtr& first, StateId& id)
 {
     m_start = CreateState(id++);
     m_accept = CreateState(id++, true);
-    m_start->m_transitions[EPSILON].push_back(first->m_start);
-    m_start->m_transitions[EPSILON].push_back(m_accept);
-    first->m_accept->m_transitions[EPSILON].push_back(m_accept);
-    first->m_accept->m_transitions[EPSILON].push_back(first->m_start);
+    m_start->m_transitions[EPSILON].insert(first->m_start);
+    m_start->m_transitions[EPSILON].insert(m_accept);
+    first->m_accept->m_transitions[EPSILON].insert(m_accept);
+    first->m_accept->m_transitions[EPSILON].insert(first->m_start);
     first->m_accept->m_isFinal = false;
     return std::make_shared<NFA>(m_start, m_accept);
 }
@@ -75,10 +75,10 @@ NFAPtr NFA::CreateAlternateAutomat(const NFAPtr& first, const NFAPtr& second, St
 {
     m_start = CreateState(id++);
     m_accept = CreateState(id++, true);
-    m_start->m_transitions[EPSILON].push_back(first->m_start);
-    m_start->m_transitions[EPSILON].push_back(second->m_start);
-    first->m_accept->m_transitions[EPSILON].push_back(m_accept);
-    second->m_accept->m_transitions[EPSILON].push_back(m_accept);
+    m_start->m_transitions[EPSILON].insert(first->m_start);
+    m_start->m_transitions[EPSILON].insert(second->m_start);
+    first->m_accept->m_transitions[EPSILON].insert(m_accept);
+    second->m_accept->m_transitions[EPSILON].insert(m_accept);
     first->m_accept->m_isFinal = false;
     second->m_accept->m_isFinal = false;
     return std::make_shared<NFA>(m_start, m_accept);

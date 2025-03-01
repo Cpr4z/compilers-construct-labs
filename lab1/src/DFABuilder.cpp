@@ -1,11 +1,8 @@
 #include "DFABuilder.hpp"
 
 #include <queue>
-//#include <vector>
-
 #include "DFA.hpp"
 #include "Utils.h"
-//#include "DFAState.hpp"
 
 void DFABuilder::Init(const NFAWPtr& nfa)
 {
@@ -23,13 +20,14 @@ IAutomationPtr DFABuilder::Build()
     DFAPtr dfa = DFA::Instance();
 
     StateSet startClosure;
+    StateSet tmpClosure;
     std::map<StateSet, DFAStatePtr> dfaStates;
     std::queue<StateSet> stateQueue;
     size_t id = 0;
     DFAStatePtr startState = dfa->CreateState(id++);
 
-    startClosure.insert(nfa->GetStart());
-    startClosure = utils::Transformation::GetEpsilonClosure(startClosure);
+    tmpClosure.insert(nfa->GetStart());
+    startClosure = utils::Transformation::GetEpsilonClosure(tmpClosure);
 
     dfaStates[startClosure] = startState;
     dfa->SetStart(startState);
@@ -51,25 +49,20 @@ IAutomationPtr DFABuilder::Build()
         }
 
         std::map<std::string, StateSet> moveTable;
-//        std::map<std::string, std::vector<NFAStatePtr>> moveTable;
         for (const NFAStatePtr& state: currentState)
         {
             for (const auto& [symbol, nextState] : state->m_transitions)
             {
                 if (symbol != utils::tokenConstants::EPSILON)
                 {
-                      auto converted = utils::Transformation::ToSet(nextState);
-                      moveTable[symbol] = converted;
+                      moveTable[symbol] = nextState;
                 }
             }
         }
 
         for (auto& [symbol, nfaNextStates] : moveTable)
         {
-//            auto converted = utils::Transformation::ToSet(nfaNextStates);
             StateSet newStateSet = utils::Transformation::GetEpsilonClosure(nfaNextStates);
-//            StateSet newStateSet = utils::Transformation::GetEpsilonClosure(nfaNextStates);
-
             auto it = dfaStates.find(newStateSet);
             if (it == dfaStates.end())
             {

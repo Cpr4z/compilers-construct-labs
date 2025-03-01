@@ -97,7 +97,7 @@ namespace Transformation
 
     NFAStateSet GetEpsilonClosure(NFAStateSet& states);
 
-    template <typename, typename = std::void_t<>>
+    template <typename T, typename = std::void_t<>>
     struct has_key_compare : std::false_type {};
 
     template <typename T>

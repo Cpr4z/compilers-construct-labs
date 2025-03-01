@@ -4,6 +4,7 @@
 #include "DFABuilder.hpp"
 #include <string>
 #include <iostream>
+#include <vector>
 
 #include <algorithm>
 
@@ -47,15 +48,33 @@ int main()
 
             }
 
-            factory = AutomationFactory::CreateStateMachineFactory(utils::AutomationType::DFA);
-            builder = factory->CreateStateMachineBuilder();
+            IAutomationFactoryPtr factory_ = AutomationFactory::CreateStateMachineFactory(utils::AutomationType::DFA);
+            IAutomationBuilderPtr builder_ = factory_->CreateStateMachineBuilder();
 
-            if (const DFABuilderPtr& dfaBuilder = std::dynamic_pointer_cast<DFABuilder>(builder))
+            if (const DFABuilderPtr& dfaBuilder = std::dynamic_pointer_cast<DFABuilder>(builder_))
             {
                 if (const NFAPtr& nfaPtr = std::dynamic_pointer_cast<NFA>(nfa))
                 {
                     dfaBuilder->Init(nfaPtr);
                     IAutomationPtr dfa = dfaBuilder->Build();
+
+                    try
+                    {
+                        vizu->CreateVizu(dfa);
+                    }
+                    catch (const std::exception& ex)
+                    {
+
+                    }
+
+                    //(a|b)*abb
+                    {
+                        std::cout << std::boolalpha << dfa->Imitate("aabb") << std::endl;
+                        std::cout << std::boolalpha << dfa->Imitate("aaabbbabb") << std::endl;
+                        std::cout << std::boolalpha << dfa->Imitate("aabbabb") << std::endl;
+                        std::cout << std::boolalpha << dfa->Imitate("babbabb") << std::endl;
+                    }
+
                 }
             }
         }

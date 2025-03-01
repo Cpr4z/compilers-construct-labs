@@ -1,8 +1,25 @@
 #include "DFA.hpp"
 
+#include <ranges>
+
 bool DFA::Imitate(std::string&& regex)
 {
-    return true;
+    DFAStatePtr currentState = m_start;
+    for (auto&& symbol: regex | std::views::transform([](char token)
+    {
+        return std::string{token};
+    }))
+    {
+        if (currentState->m_transitions.count(symbol))
+        {
+            currentState = currentState->m_transitions[symbol];
+        }
+        else
+        {
+            return false;
+        }
+    }
+    return currentState->m_isFinal;
 }
 
 DFAPtr DFA::Instance()

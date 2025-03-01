@@ -2,7 +2,9 @@
 
 #include "IAutomationVizu.hpp"
 #include "Utils.h"
-#include "NFA.hpp"
+#include "NFAState.hpp"
+#include "DFAState.hpp"
+//#include "NFA.hpp"
 
 #include <set>
 
@@ -12,8 +14,9 @@ public:
     void CreateVizu(const IAutomationPtr&) override;// noexcept(false) ??
 
 private:
-    void FromDotToPng(const fs_path& dot); // noexcept(false) ??
+    void FromDotToPng(const fs_path& dot, utils::AutomationType::e); // noexcept(false) ??
     std::string printAutomat(const NFAStatePtr& state, std::set<StateId>& visited);
+    std::string printAutomat(const DFAStatePtr& state, std::set<StateId>& visited);
     void cleanDirs() const;
     [[nodiscard]] fs_path GeneratePath(utils::VizuType::FileType::e) const;
 
