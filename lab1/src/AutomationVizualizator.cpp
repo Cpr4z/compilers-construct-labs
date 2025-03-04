@@ -96,7 +96,6 @@ void AutomationVizualizator::CreateVizu(const IAutomationPtr& machine)
         file.close();
 
         FromDotToPng(targetPath, autoType);
-
     }
     else
     {
@@ -171,23 +170,23 @@ std::string AutomationVizualizator::printAutomat(const DFAStatePtr& state, std::
     {
         return {};
     }
+
     visited.insert(state->m_id);
     std::ostringstream out;
-    for (const auto& [symbol, nextState]: state->m_transitions)
+    if (state->m_isFinal)
     {
-        if (state->m_isFinal)
-        {
-            out << "   "<< state->m_id  << " [shape=doublecircle];\n";
-            out << "   "<< state->m_id << " -> " << nextState->m_id
+        out << " " << state->m_id << " [shape=doublecircle];\n";
+    }
+
+    for (const auto& [symbol, nextState] : state->m_transitions) {
+        if (!nextState) continue;
+
+        out << " " << state->m_id << " -> " << nextState->m_id
             << " [label=\"" << symbol << "\"];\n";
-        }
-        else
-        {
-            out << "    " << state->m_id << " -> " << nextState->m_id
-                << " [label=\"" << symbol << "\"];\n";
-        }
+
         out << printAutomat(nextState, visited);
     }
+
     return out.str();
 }
 

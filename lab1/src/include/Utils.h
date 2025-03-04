@@ -2,6 +2,7 @@
 
 #include <set>
 #include <type_traits>
+#include <iostream>
 
 #include "NFAState.hpp"
 
@@ -129,5 +130,24 @@ namespace Transformation
     {
         return ToSetHelp<ContainerType>::convert(container);
     }
+
+    template<typename Container>
+    typename Container::value_type getFirst(const Container& container)
+    {
+        return *(container.begin());
+    }
 }
+
+namespace IOUtils
+{
+    template<typename Container>
+    void printContainer(const Container& container)
+    {
+        for (auto it = std::begin(container); it != std::end(container); ++it)
+        {
+            std::cout << it << " ";
+        }
+        std::cout << std::endl;
+    }
+};
 }

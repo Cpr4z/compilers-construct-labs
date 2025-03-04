@@ -272,6 +272,35 @@ namespace Transformation
         }
         return closure;
     }
+
+//    NFAStateSet GetEpsilonClosure(NFAStateSet& states)
+//    {
+//        NFAStateSet closure = states;
+//        std::queue<NFAStatePtr> visited;
+//
+//        for (const auto& state: states)
+//        {
+//            visited.push(state);
+//        }
+//
+//        while (!visited.empty())
+//        {
+//            NFAStatePtr currentState = visited.front();
+//            visited.pop();
+//            for (const auto& [symbol, nextState] : currentState->m_transitions)
+//            {
+//                for (const NFAStatePtr& state : nextState)
+//                {
+//                    if (symbol == tokenConstants::EPSILON && !closure.contains(state))
+//                    {
+//                        closure.insert(state);
+//                        visited.push(state);
+//                    }
+//                }
+//            }
+//        }
+//        return closure;
+//    }
 }
 
 }

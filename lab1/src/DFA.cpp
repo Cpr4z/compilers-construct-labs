@@ -13,6 +13,11 @@ bool DFA::Imitate(std::string&& regex)
         if (currentState->m_transitions.count(symbol))
         {
             currentState = currentState->m_transitions[symbol];
+//            auto it = currentState->m_transitions.find(symbol);
+//            if (it != currentState->m_transitions.end())
+//            {
+//                currentState = it->second;
+//            }
         }
         else
         {

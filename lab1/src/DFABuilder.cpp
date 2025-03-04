@@ -38,7 +38,6 @@ IAutomationPtr DFABuilder::Build()
         StateSet currentState = stateQueue.front();
         stateQueue.pop();
         DFAStatePtr dfaState = dfaStates[currentState];
-
         for (const NFAStatePtr& nfaState: currentState)
         {
             if (nfaState->m_isFinal)
@@ -55,7 +54,7 @@ IAutomationPtr DFABuilder::Build()
             {
                 if (symbol != utils::tokenConstants::EPSILON)
                 {
-                      moveTable[symbol] = nextState;
+                    moveTable[symbol].insert(nextState.begin(), nextState.end());
                 }
             }
         }
@@ -63,16 +62,14 @@ IAutomationPtr DFABuilder::Build()
         for (auto& [symbol, nfaNextStates] : moveTable)
         {
             StateSet newStateSet = utils::Transformation::GetEpsilonClosure(nfaNextStates);
-            auto it = dfaStates.find(newStateSet);
-            if (it == dfaStates.end())
+            if (!dfaStates.contains(newStateSet))
             {
                 DFAStatePtr newState = dfa->CreateState(id++);
                 dfaStates[newStateSet] = newState;
                 stateQueue.push(newStateSet);
             }
-            dfaState->m_transitions[symbol] = dfaStates[newStateSet];
+            dfaState->m_transitions.emplace(symbol, dfaStates[newStateSet]);
         }
-
     }
     return dfa;
 }

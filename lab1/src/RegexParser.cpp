@@ -29,7 +29,7 @@ int main()
         }
 
         TokensSequence polishedSequence = utils::preprocessing::validateRegex(std::move(regex));
-        std::ranges::for_each(polishedSequence, [](const auto& token){std::cout << token;});
+//        std::ranges::for_each(polishedSequence, [](const auto& token){std::cout << token;});
         IAutomationFactoryPtr factory = AutomationFactory::CreateStateMachineFactory(utils::AutomationType::e::NFA);
         IAutomationBuilderPtr builder = factory->CreateStateMachineBuilder();
 
@@ -57,7 +57,6 @@ int main()
                 {
                     dfaBuilder->Init(nfaPtr);
                     IAutomationPtr dfa = dfaBuilder->Build();
-
                     try
                     {
                         vizu->CreateVizu(dfa);
@@ -69,10 +68,10 @@ int main()
 
                     //(a|b)*abb
                     {
-                        std::cout << std::boolalpha << dfa->Imitate("aabb") << std::endl;
-                        std::cout << std::boolalpha << dfa->Imitate("aaabbbabb") << std::endl;
-                        std::cout << std::boolalpha << dfa->Imitate("aabbabb") << std::endl;
-                        std::cout << std::boolalpha << dfa->Imitate("babbabb") << std::endl;
+//                        std::cout << std::boolalpha << dfa->Imitate("aabbbabb") << std::endl;
+//                        std::cout << std::boolalpha << dfa->Imitate("aaabbbabb") << std::endl;
+//                        std::cout << std::boolalpha << dfa->Imitate("aabbabb") << std::endl;
+//                        std::cout << std::boolalpha << dfa->Imitate("babbabb") << std::endl;
                     }
 
                 }
