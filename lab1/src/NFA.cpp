@@ -5,7 +5,7 @@
 
 #include "Utils.h"
 
-using namespace utils::tokenConstants;
+using namespace Utils::tokenConstants;
 
 NFA::NFA(NFAStatePtr start, NFAStatePtr accept) : m_start(std::move(start)), m_accept(std::move(accept))
 {
@@ -13,15 +13,15 @@ NFA::NFA(NFAStatePtr start, NFAStatePtr accept) : m_start(std::move(start)), m_a
 
 bool NFA::Imitate(std::string&& input)
 {
-    StateSet currentStates(NFAStateComparator{});
+    NFAStateSet currentStates;
     currentStates.insert(m_start);
-    currentStates = utils::Transformation::GetEpsilonClosure(currentStates);
+    currentStates = Utils::Transformation::GetEpsilonClosure(currentStates);
 
     for (auto&& str : input | std::views::transform([](char token) {
         return std::string{token};
     }))
     {
-        StateSet nextStates(NFAStateComparator{});
+        NFAStateSet nextStates;
         for (const auto& state : currentStates)
         {
             auto it = state->m_transitions.find(str);
@@ -34,7 +34,7 @@ bool NFA::Imitate(std::string&& input)
             }
         }
 
-        currentStates = utils::Transformation::GetEpsilonClosure(nextStates);
+        currentStates = Utils::Transformation::GetEpsilonClosure(nextStates);
         if (currentStates.empty())
         {
             return false;

@@ -1,15 +1,12 @@
 #pragma once
-
 #include <set>
-
 #include <NFAState.hpp>
-
 #include "IAutomation.hpp"
 
-using StateSet = std::set<NFAStatePtr, NFAStateComparator>;
+using NFAStateSet = std::set<NFAStatePtr, NFAStateComparator>;
 using NFAPtr = std::shared_ptr<class NFA>;
 
-class NFA : public IAutomation
+class [[nodiscard]] NFA : public IAutomation
 {
 public:
     NFA() = default;
@@ -19,15 +16,15 @@ public:
     bool Imitate(std::string&& input) override;
 
     // NFA
-    [[nodiscard]] static NFAPtr Instance();
-    [[nodiscard]] NFAPtr CreateBaseAutomat(const std::string& token, StateId& id);
-    [[nodiscard]] NFAPtr CreateConcatAutomat(const NFAPtr& first, const NFAPtr& second);
-    [[nodiscard]] NFAPtr CreateKleeneAutomat(const NFAPtr& first, StateId& id);
-    [[nodiscard]] NFAPtr CreateAlternateAutomat(const NFAPtr& first, const NFAPtr& second, StateId& id);
-    [[nodiscard]] NFAStatePtr CreateState(StateId);
-    [[nodiscard]] NFAStatePtr CreateState(StateId, bool);
-    [[nodiscard]] NFAStatePtr GetStart() const;
-    [[nodiscard]] NFAStatePtr GetAccept() const;
+    static NFAPtr Instance();
+    NFAPtr CreateBaseAutomat(const std::string& token, StateId& id);
+    NFAPtr CreateConcatAutomat(const NFAPtr& first, const NFAPtr& second);
+    NFAPtr CreateKleeneAutomat(const NFAPtr& first, StateId& id);
+    NFAPtr CreateAlternateAutomat(const NFAPtr& first, const NFAPtr& second, StateId& id);
+    NFAStatePtr CreateState(StateId);
+    [[maybe_unused]] NFAStatePtr CreateState(StateId, bool);
+    NFAStatePtr GetStart() const;
+    NFAStatePtr GetAccept() const;
 
 private:
     NFAStatePtr m_start;

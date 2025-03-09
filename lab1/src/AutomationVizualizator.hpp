@@ -14,11 +14,11 @@ public:
     void CreateVizu(const IAutomationPtr&) override;// noexcept(false) ??
 
 private:
-    void FromDotToPng(const fs_path& dot, utils::AutomationType::e); // noexcept(false) ??
+    void FromDotToPng(const fs_path& dot, Utils::AutomationType::e); // noexcept(false) ??
     std::string printAutomat(const NFAStatePtr& state, std::set<StateId>& visited);
     std::string printAutomat(const DFAStatePtr& state, std::set<StateId>& visited);
     void cleanDirs() const;
-    [[nodiscard]] fs_path GeneratePath(utils::VizuType::FileType::e) const;
+    [[nodiscard]] fs_path GeneratePath(Utils::VizuType::FileType::e) const;
 
 private:
     static size_t m_countDot;

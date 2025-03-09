@@ -8,7 +8,7 @@
 
 #include <sstream>
 
-using namespace utils;
+using namespace Utils;
 
 size_t AutomationVizualizator::m_countDot = 0;
 size_t AutomationVizualizator::m_countPng = 0;
@@ -39,9 +39,9 @@ void AutomationVizualizator::CreateVizu(const IAutomationPtr& machine)
     }
 
     fs_path path = GeneratePath(VizuType::FileType::DOT);
-    std::string_view ext = utils::VizuType::getInfo(VizuType::FileType::DOT, VizuType::InfoType::EXT);
+    std::string_view ext = Utils::VizuType::getInfo(VizuType::FileType::DOT, VizuType::InfoType::EXT);
     fs_path targetPath;
-    utils::AutomationType::e autoType;
+    Utils::AutomationType::e autoType;
     if (const NFAPtr& nfa = std::dynamic_pointer_cast<NFA>(machine))
     {
         autoType = AutomationType::NFA;
@@ -103,10 +103,10 @@ void AutomationVizualizator::CreateVizu(const IAutomationPtr& machine)
     }
 }
 
-void AutomationVizualizator::FromDotToPng(const fs_path& dot, utils::AutomationType::e type)
+void AutomationVizualizator::FromDotToPng(const fs_path& dot, Utils::AutomationType::e type)
 {
     fs_path path = GeneratePath(VizuType::FileType::PNG);
-    std::string_view ext = utils::VizuType::getInfo(VizuType::FileType::PNG, VizuType::InfoType::EXT);
+    std::string_view ext = Utils::VizuType::getInfo(VizuType::FileType::PNG, VizuType::InfoType::EXT);
     fs_path targetPath = std::format("{}/{}{}{}", path.string(), AutomationType::getFileNameByType(type), ++m_countPng, ext);
     std::ofstream file(targetPath);
 
@@ -186,7 +186,6 @@ std::string AutomationVizualizator::printAutomat(const DFAStatePtr& state, std::
 
         out << printAutomat(nextState, visited);
     }
-
     return out.str();
 }
 

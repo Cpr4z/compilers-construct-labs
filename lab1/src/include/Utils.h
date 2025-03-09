@@ -10,7 +10,7 @@ using OperatorPriority = size_t;
 using Token = char;
 using TokensSequence = std::vector<std::string>;
 
-namespace utils
+namespace Utils
 {
 namespace tokenConstants
 {
@@ -43,7 +43,7 @@ enum e
     COUNT
 };
 
-namespace file
+namespace File
 {
 constexpr std::string_view nfa_file = "nfa_graph";
 constexpr std::string_view dfa_file = "dfa_graph";
@@ -74,15 +74,15 @@ enum e
 };
 }
 
-namespace constants
+namespace Constants
 {
-namespace dir
+namespace Dir
 {
     constexpr std::string_view dot = "Dot";
     constexpr std::string_view png = "Png";
 }
 
-namespace ext
+namespace Ext
 {
     constexpr std::string_view dot_ext = ".dot";
     constexpr std::string_view png_ext = ".png";
@@ -131,6 +131,12 @@ namespace Transformation
         return ToSetHelp<ContainerType>::convert(container);
     }
 
+    template<typename ContainerType>
+    std::vector<typename ContainerType::value_type> ToVector(const ContainerType& container)
+    {
+        return std::vector<typename ContainerType::value_type>(container.begin(), container.end());
+    }
+
     template<typename Container>
     typename Container::value_type getFirst(const Container& container)
     {
@@ -150,4 +156,22 @@ namespace IOUtils
         std::cout << std::endl;
     }
 };
+
+namespace Exception
+{
+    template<typename Fn, typename ...Args> requires std::invocable<Fn, Args...>
+    [[nodiscard]] bool ExecuteNoexcept(Fn&& fn, Args&& ...args)
+    {
+        bool result = true;
+        try
+        {
+            std::invoke(fn, args...);
+        }
+        catch(...)
+        {
+            result = false;
+        }
+        return result;
+    }
+}
 }

@@ -4,21 +4,29 @@
 #include "DFAState.hpp"
 
 using DFAPtr = std::shared_ptr<class DFA>;
+using DFAStateSet = std::set<DFAStatePtr, DFAStateComparator>;
 
-class DFA: public IAutomation
+class [[nodiscard]] DFA: public IAutomation
 {
 public:
     bool Imitate(std::string&& regex) override;
 
-    [[nodiscard]] static DFAPtr Instance();
+    static DFAPtr Instance();
 
-    [[nodiscard]] DFAStatePtr CreateState(StateId id);
-    [[nodiscard]] DFAStatePtr CreateState(StateId id, bool isFinal);
+    DFAStatePtr CreateState(StateId id);
+    [[maybe_unused]] DFAStatePtr CreateState(StateId id, bool isFinal);
 
+    // TO DO: move this logic to DFAController
+    DFAStateSet GetStates() const;
+    std::set<std::string> GetAlphabet() const;
+    const std::set<DFAStatePtr>& GetFinalStates() const { return m_finalStates; }
+    StateId GetStateIndex(const DFAStatePtr& state) const;
     void SetStart(const DFAStatePtr& start) { m_start = start;};
-    [[nodiscard]] DFAStatePtr GetStart() const { return m_start; }
+    DFAStatePtr GetStart() const { return m_start; }
+    void SetFinalStates(std::set<DFAStatePtr> finalStates) { m_finalStates = std::move(finalStates); }
 
 private:
     DFAStatePtr m_start;
+    std::set<DFAStatePtr> m_finalStates;
 };
 

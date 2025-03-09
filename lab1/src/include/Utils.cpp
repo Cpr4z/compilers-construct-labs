@@ -7,10 +7,11 @@
 #include "../MyStack.hpp"
 
 #include "boost/bimap.hpp"
+#include "boost/signals2.hpp"
 
 #include <iostream>
 
-namespace utils
+namespace Utils
 {
 namespace tokenConstants
 {
@@ -203,8 +204,8 @@ std::string_view getFileNameByType(e type)
 {
     if (AUTO_DETERMINANT.empty())
     {
-        AUTO_DETERMINANT.insert({e::NFA, file::nfa_file});
-        AUTO_DETERMINANT.insert({e::DFA, file::dfa_file});
+        AUTO_DETERMINANT.insert({e::NFA, File::nfa_file});
+        AUTO_DETERMINANT.insert({e::DFA, File::dfa_file});
     }
 
     auto it = AUTO_DETERMINANT.left.find(type);
@@ -224,8 +225,8 @@ std::string_view getInfo(FileType::e type, InfoType::e infoType)
 {
     if (DIR_DETERMINANT.empty())
     {
-        DIR_DETERMINANT.insert({FileType::e::DOT, {constants::dir::dot, constants::ext::dot_ext}});
-        DIR_DETERMINANT.insert({FileType::e::PNG, {constants::dir::png, constants::ext::png_ext}});
+        DIR_DETERMINANT.insert({FileType::e::DOT, {Constants::Dir::dot, Constants::Ext::dot_ext}});
+        DIR_DETERMINANT.insert({FileType::e::PNG, {Constants::Dir::png, Constants::Ext::png_ext}});
     }
 
     auto it = DIR_DETERMINANT.left.find(type);
@@ -239,68 +240,37 @@ std::string_view getInfo(FileType::e type, InfoType::e infoType)
 
 namespace Transformation
 {
-//    extern const std::string EPSILON;
+NFAStateSet GetEpsilonClosure(NFAStateSet& states)
+{
+    NFAStateSet closure = states;
+    MyStack<NFAStatePtr> stack;
 
-    NFAStateSet GetEpsilonClosure(NFAStateSet& states)
+    for (const auto& state: states)
     {
-        NFAStateSet closure = states;
-        MyStack<NFAStatePtr> stack;
+        stack.push(state);
+    }
 
-        for (const auto& state: states)
+    while (!stack.empty())
+    {
+        NFAStatePtr state;
+        if (stack.pop(state))
         {
-            stack.push(state);
-        }
-
-        while (!stack.empty())
-        {
-            NFAStatePtr state;
-            if (stack.pop(state))
+            auto it = state->m_transitions.find(tokenConstants::EPSILON);
+            if (it != state->m_transitions.end())
             {
-                auto it = state->m_transitions.find(tokenConstants::EPSILON);
-                if (it != state->m_transitions.end())
+                for (const auto& nextState : it->second)
                 {
-                    for (const auto& nextState : it->second)
+                    if (closure.find(nextState) == closure.end())
                     {
-                        if (closure.find(nextState) == closure.end())
-                        {
-                            closure.insert(nextState);
-                            stack.push(nextState);
-                        }
+                        closure.insert(nextState);
+                        stack.push(nextState);
                     }
                 }
             }
         }
-        return closure;
     }
-
-//    NFAStateSet GetEpsilonClosure(NFAStateSet& states)
-//    {
-//        NFAStateSet closure = states;
-//        std::queue<NFAStatePtr> visited;
-//
-//        for (const auto& state: states)
-//        {
-//            visited.push(state);
-//        }
-//
-//        while (!visited.empty())
-//        {
-//            NFAStatePtr currentState = visited.front();
-//            visited.pop();
-//            for (const auto& [symbol, nextState] : currentState->m_transitions)
-//            {
-//                for (const NFAStatePtr& state : nextState)
-//                {
-//                    if (symbol == tokenConstants::EPSILON && !closure.contains(state))
-//                    {
-//                        closure.insert(state);
-//                        visited.push(state);
-//                    }
-//                }
-//            }
-//        }
-//        return closure;
-//    }
+    return closure;
+}
 }
 
 }

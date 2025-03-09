@@ -19,15 +19,18 @@ IAutomationPtr DFABuilder::Build()
     const NFAPtr& nfa = m_nfa.lock();
     DFAPtr dfa = DFA::Instance();
 
-    StateSet startClosure;
-    StateSet tmpClosure;
-    std::map<StateSet, DFAStatePtr> dfaStates;
-    std::queue<StateSet> stateQueue;
+    NFAStateSet startClosure;
+    NFAStateSet tmpClosure;
+    std::map<NFAStateSet, DFAStatePtr> dfaStates;
+    std::queue<NFAStateSet> stateQueue;
     size_t id = 0;
     DFAStatePtr startState = dfa->CreateState(id++);
 
     tmpClosure.insert(nfa->GetStart());
-    startClosure = utils::Transformation::GetEpsilonClosure(tmpClosure);
+    startClosure = Utils::Transformation::GetEpsilonClosure(tmpClosure);
+
+    std::set<DFAStatePtr> finishStates;
+
 
     dfaStates[startClosure] = startState;
     dfa->SetStart(startState);
@@ -35,7 +38,7 @@ IAutomationPtr DFABuilder::Build()
 
     while (!stateQueue.empty())
     {
-        StateSet currentState = stateQueue.front();
+        NFAStateSet currentState = stateQueue.front();
         stateQueue.pop();
         DFAStatePtr dfaState = dfaStates[currentState];
         for (const NFAStatePtr& nfaState: currentState)
@@ -47,12 +50,12 @@ IAutomationPtr DFABuilder::Build()
             }
         }
 
-        std::map<std::string, StateSet> moveTable;
+        std::map<std::string, NFAStateSet> moveTable;
         for (const NFAStatePtr& state: currentState)
         {
             for (const auto& [symbol, nextState] : state->m_transitions)
             {
-                if (symbol != utils::tokenConstants::EPSILON)
+                if (symbol != Utils::tokenConstants::EPSILON)
                 {
                     moveTable[symbol].insert(nextState.begin(), nextState.end());
                 }
@@ -61,7 +64,7 @@ IAutomationPtr DFABuilder::Build()
 
         for (auto& [symbol, nfaNextStates] : moveTable)
         {
-            StateSet newStateSet = utils::Transformation::GetEpsilonClosure(nfaNextStates);
+            NFAStateSet newStateSet = Utils::Transformation::GetEpsilonClosure(nfaNextStates);
             if (!dfaStates.contains(newStateSet))
             {
                 DFAStatePtr newState = dfa->CreateState(id++);
@@ -71,5 +74,20 @@ IAutomationPtr DFABuilder::Build()
             dfaState->m_transitions.emplace(symbol, dfaStates[newStateSet]);
         }
     }
+
+    for (const auto& [stateSet, dfaState] : dfaStates)
+    {
+        for (const NFAStatePtr& nfaState : stateSet)
+        {
+            if (nfaState->m_isFinal)
+            {
+                finishStates.insert(dfaState);
+//                break;
+            }
+        }
+    }
+
+    dfa->SetFinalStates(std::move(finishStates));
+
     return dfa;
 }

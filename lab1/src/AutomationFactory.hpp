@@ -6,6 +6,6 @@
 class AutomationFactory
 {
 public:
-    static IAutomationFactoryPtr CreateStateMachineFactory(utils::AutomationType::e type);
+    static IAutomationFactoryPtr CreateStateMachineFactory(Utils::AutomationType::e type);
 };
 
