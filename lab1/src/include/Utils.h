@@ -1,9 +1,6 @@
 #pragma once
-
 #include <set>
-#include <type_traits>
 #include <iostream>
-
 #include "NFAState.hpp"
 
 using OperatorPriority = size_t;

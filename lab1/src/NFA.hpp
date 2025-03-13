@@ -1,7 +1,7 @@
 #pragma once
 #include <set>
-#include <NFAState.hpp>
 #include "IAutomation.hpp"
+#include "NFAState.hpp"
 
 using NFAStateSet = std::set<NFAStatePtr, NFAStateComparator>;
 using NFAPtr = std::shared_ptr<class NFA>;

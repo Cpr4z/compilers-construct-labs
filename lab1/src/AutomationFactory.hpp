@@ -1,5 +1,4 @@
 #pragma once
-
 #include "IAutomationFactory.hpp"
 #include "Utils.h"
 

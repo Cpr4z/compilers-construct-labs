@@ -21,54 +21,25 @@ DFAPtr DFAMinimizator::MinimizeDFA(const DFAPtr& dfa)
         }
     }
 
-//    for (const DFAStatePtr& state : dfaStates)
-//    {
-//        for (const auto& [symbol, nextState] : state->m_transitions)
-//        {
-//            // Проверяем, существует ли уже символ в списке входящих ребер
-//            if (!reverseTransitions.contains(nextState))
-//            {
-//                reverseTransitions[nextState] = {};
-//            }
-//            if (!reverseTransitions[nextState].contains(symbol))
-//            {
-//                reverseTransitions[nextState][symbol] = {};
-//            }
-//
-//            // Добавляем текущее состояние как "обратное" для nextState
-//            reverseTransitions[nextState][symbol].push_back(state);
-//
-//            // Вывод для отладки
-//            std::cout << "Adding reverse edge: "
-//                      << state->m_id << " --(" << symbol << ")--> " << nextState->m_id << "\n";
-//        }
-//    }
-
     std::vector<bool> isTerminal(n, false);
-    for (const auto& state : dfa->GetFinalStates())
-    {
-        isTerminal[dfa->GetStateIndex(state)] = true;
-    }
+    std::queue<DFAStatePtr> queue;
 
-//    std::vector<bool> isTerminal(n, false);
-//    std::queue<DFAStatePtr> queue;
-//
-//    DFAStatePtr startState = dfa->GetStart();
-//    isTerminal[dfa->GetStateIndex(startState)] = true;
-//    queue.push(startState);
-//
-//    while (!queue.empty()) {
-//        DFAStatePtr current = queue.front();
-//        queue.pop();
-//
-//        for (const auto& [symbol, nextState] : current->m_transitions) {
-//            size_t nextIndex = dfa->GetStateIndex(nextState);
-//            if (!isTerminal[nextIndex]) {
-//                isTerminal[nextIndex] = true;
-//                queue.push(nextState);
-//            }
-//        }
-//    }
+    DFAStatePtr startState = dfa->GetStart();
+    isTerminal[dfa->GetStateIndex(startState)] = true;
+    queue.push(startState);
+
+    while (!queue.empty()) {
+        DFAStatePtr current = queue.front();
+        queue.pop();
+
+        for (const auto& [symbol, nextState] : current->m_transitions) {
+            size_t nextIndex = dfa->GetStateIndex(nextState);
+            if (!isTerminal[nextIndex]) {
+                isTerminal[nextIndex] = true;
+                queue.push(nextState);
+            }
+        }
+    }
 
     auto marked = buildTable(dfa, isTerminal, reverseTransitions);
 
@@ -76,19 +47,17 @@ DFAPtr DFAMinimizator::MinimizeDFA(const DFAPtr& dfa)
     std::vector<int> component(n , -1);
     std::map<DFAStatePtr, StateId> indexTable = buildIndexTable(dfa);
 
-//`    for (size_t i = 0; i < n; i++)
-//    {
-//        if (!marked[0][i])
-//        {
-//            component[i] = 0;
-//        }
-//    }`
+    for (size_t i = 0; i < n; i++)
+    {
+        if (!marked[0][i])
+        {
+            component[i] = 0;
+        }
+    }
 
     int componentCount = 0;
     for (size_t i = 1; i < n; i++)
     {
-//        if (isTerminal[i]) continue;
-
         if (component[i] == -1)
         {
             component[i] = ++componentCount;
@@ -96,16 +65,8 @@ DFAPtr DFAMinimizator::MinimizeDFA(const DFAPtr& dfa)
             {
                 if (!marked[i][j])
                 {
-                    component[j] = componentCount;
+                    component[j] = component[i];
                 }
-            }
-        }
-    }
-
-    for (size_t i = 0; i < n; i++) {
-        for (size_t j = i + 1; j < n; j++) {
-            if (!marked[i][j] && component[j] == -1) {
-                component[j] = component[i];
             }
         }
     }
@@ -113,27 +74,13 @@ DFAPtr DFAMinimizator::MinimizeDFA(const DFAPtr& dfa)
     DFAPtr minimizedDFA = DFA::Instance();
     std::map<StateId, DFAStatePtr> newStates;
 
-
-//    for (size_t i = 0; i < n; i++)
-//    {
-//        if (!newStates.contains(component[i]))
-//        {
-//            newStates[component[i]] = minimizedDFA->CreateState(component[i], dfaVector[i]->m_isFinal);
-//        }
-//    }
-//
-//    for (size_t i = 0; i < n; i++)
-//    {
-//        const DFAStatePtr& oldState = dfaVector[i];
-//        DFAStatePtr& newState = newStates[component[i]];
-//
-//        for (const auto& [symbol, nextState] : oldState->m_transitions)
-//        {
-//            int nextComponent = component[indexTable[nextState]];
-//            newState->m_transitions[symbol] = newStates[nextComponent];
-//        }
-//    }
-//    minimizedDFA->SetStart(newStates[component[indexTable[dfa->GetStart()]]]);
+    for (size_t i = 0; i < n; i++)
+    {
+        if (!newStates.contains(component[i]))
+        {
+            newStates[component[i]] = minimizedDFA->CreateState(component[i], dfaVector[i]->m_isFinal);
+        }
+    }
 
     for (const auto& [oldState, idx] : indexTable) {
         int newComponent = component[idx];
@@ -147,7 +94,6 @@ DFAPtr DFAMinimizator::MinimizeDFA(const DFAPtr& dfa)
         }
     }
 
-    // 2. Перенос переходов
     std::map<int, std::map<std::string, int>> newTransitions;
     for (const auto& [oldState, idx] : indexTable) {
         int fromComponent = component[idx];
@@ -158,18 +104,15 @@ DFAPtr DFAMinimizator::MinimizeDFA(const DFAPtr& dfa)
         }
     }
 
-    // 3. Применяем переходы к новым состояниям
     for (const auto& [fromState, transitions] : newTransitions) {
         for (const auto& [symbol, toState] : transitions) {
             newStates[fromState]->m_transitions[symbol] = newStates[toState];
         }
     }
 
-    // 4. Установка стартового состояния
     int startComponent = component[indexTable[dfa->GetStart()]];
     minimizedDFA->SetStart(newStates[startComponent]);
 
-    // 5. Установка финальных состояний
     std::set<DFAStatePtr> finalStates;
     for (const auto& state : dfa->GetFinalStates()) {
         finalStates.insert(newStates[component[indexTable[state]]]);
@@ -205,8 +148,7 @@ std::vector<std::vector<bool>> DFAMinimizator::buildTable(const DFAPtr& dfa, con
     {
         for (size_t j = i + 1; j < size; j++)
         {
-//            if (!marked[i][j] && (isTerminal[i] != isTerminal[j]))
-            if (isTerminal[i] != isTerminal[j])
+            if (!marked[i][j] && (isTerminal[i] != isTerminal[j]))
             {
                 marked[i][j] = marked[j][i] = true;
                 queue.emplace(i, j);
@@ -255,113 +197,182 @@ std::vector<std::vector<bool>> DFAMinimizator::buildTable(const DFAPtr& dfa, con
 DFAPtr DFAMinimizator::ReverseDFA(const DFAPtr& dfa)
 {
     DFAPtr reversedDFA = DFA::Instance();
-    std::map<DFAStatePtr, DFAStatePtr> stateMapping;
+    std::map<DFAStatePtr, DFAStatePtr> stateMap;
+
     for (const auto& state : dfa->GetStates()) {
-        stateMapping[state] = reversedDFA->CreateState(state->m_id, state->m_isFinal);
+        stateMap[state] = reversedDFA->CreateState(state->m_id, false);
     }
 
     for (const auto& state : dfa->GetStates()) {
         for (const auto& [symbol, nextState] : state->m_transitions) {
-            stateMapping[nextState]->m_transitions[symbol] = stateMapping[state];
+            stateMap[nextState]->m_transitions[symbol] = stateMap[state];
         }
     }
 
-    std::set<DFAStatePtr> newFinalStates = { stateMapping[dfa->GetStart()] };
-    reversedDFA->SetFinalStates(newFinalStates);
-
-    if (!dfa->GetFinalStates().empty()) {
-        reversedDFA->SetStart(stateMapping[*dfa->GetFinalStates().begin()]);
+    reversedDFA->SetFinalStates({stateMap[dfa->GetStart()]});
+    for (const auto& finalState : dfa->GetFinalStates()) {
+        reversedDFA->SetStart(stateMap[finalState]);
     }
+
     return reversedDFA;
 }
 
-DFAPtr DFAMinimizator::BrzozowskiMinimize(const DFAPtr& dfa)
+DFAPtr DFAMinimizator::BrzhovkiyMinimize(const DFAPtr& dfa)
 {
-    return ReverseDFA(dfa);
+    DFAPtr reversedDFA = ReverseDFA(dfa);
+    DFAPtr minimizedDFA = ReverseDFA(reversedDFA);
+    return minimizedDFA;
 }
 
-DFAPtr DFAMinimizator::HopcroftMinimize(const DFAPtr& dfa)
+DFAPtr DFAMinimizator::BuildMinimizedFA(const std::vector<std::string>& tokens)
 {
-    DFAStateSet states = dfa->GetStates();
+    return {};
+}
+
+DFAPtr DFAMinimizator::MinimizeKhophort(const DFAPtr& dfa)
+{
+    std::set<DFAStatePtr> finalStates, nonFinalStates;
+
+    for (const DFAStatePtr& state : dfa->GetStates())
+    {
+        if (state->m_isFinal)
+        {
+            finalStates.insert(state);
+        }
+        else
+        {
+            nonFinalStates.insert(state);
+        }
+    }
+
+    std::set<std::set<DFAStatePtr>> P;
+    if (nonFinalStates.empty())
+    {
+        P.insert(finalStates);
+    }
+    else
+    {
+        P = {finalStates, nonFinalStates};
+    }
+
+    std::queue<std::set<DFAStatePtr>> W;
+    W.push(finalStates);
     std::set<std::string> alphabet = dfa->GetAlphabet();
-
-    std::map<DFAStatePtr, int> stateClass;
-    std::vector<std::set<DFAStatePtr>> partitions(2);
-
-    for (const auto& state : states) {
-        if (state->m_isFinal) {
-            stateClass[state] = 0;
-            partitions[0].insert(state);
-        } else {
-            stateClass[state] = 1;
-            partitions[1].insert(state);
-        }
-    }
-
-    std::queue<std::pair<int, std::string>> workQueue;
-    for (const auto& symbol : alphabet) {
-        workQueue.emplace(0, symbol);
-        workQueue.emplace(1, symbol);
-    }
-
-    while (!workQueue.empty()) {
-        auto [classIdx, symbol] = workQueue.front();
-        workQueue.pop();
-
-        std::map<int, std::set<DFAStatePtr>> involvedStates;
-        for (const auto& state : partitions[classIdx]) {
-            for (const auto& prevState : states) {
-                DFAStatePtr transState = prevState->GetTransition(symbol);
-                if (transState && stateClass[transState] == classIdx) {
-                    involvedStates[stateClass[prevState]].insert(prevState);
+    while (!W.empty())
+    {
+        std::set<DFAStatePtr> classToSplit = W.front();
+        W.pop();
+        for (const std::string& symbol : alphabet)
+        {
+            std::set<DFAStatePtr> affectingStates;
+            for (const DFAStatePtr& state : dfa->GetStates())
+            {
+                for (const auto& [transitionSymbol, nextState] : state->m_transitions)
+                {
+                    if (symbol == transitionSymbol && classToSplit.contains(nextState))
+                    {
+                        affectingStates.insert(state);
+                    }
                 }
             }
-        }
 
-        for (const auto& [oldClass, affectedStates] : involvedStates) {
-            if (affectedStates.size() < partitions[oldClass].size()) {
-                partitions.emplace_back();
-                int newClass = partitions.size() - 1;
-
-                for (const auto& state : affectedStates) {
-                    partitions[oldClass].erase(state);
-                    partitions[newClass].insert(state);
-                    stateClass[state] = newClass;
+            for (const std::set<DFAStatePtr>& subset : P)
+            {
+                std::set<DFAStatePtr> intersection, difference;
+                for (const DFAStatePtr& state : subset)
+                {
+                    if (affectingStates.contains(state))
+                    {
+                        intersection.insert(state);
+                    }
+                    else
+                    {
+                        difference.insert(state);
+                    }
                 }
 
-                if (partitions[newClass].size() > partitions[oldClass].size()) {
-                    std::swap(partitions[newClass], partitions[oldClass]);
+                if (!intersection.empty() && !difference.empty())
+                {
+                    P.erase(subset);
+                    P.insert(intersection);
+                    P.insert(difference);
+
+                    std::queue<std::set<DFAStatePtr>> Q;
+                    bool found = false;
+                    while (!W.empty())
+                    {
+                        auto curr = W.front();
+                        W.pop();
+                        if (curr == subset)
+                        {
+                            found = true;
+                        }
+                        else
+                        {
+                            Q.push(curr);
+                        }
+                    }
+
+                    if (found)
+                    {
+                        Q.push(intersection);
+                        Q.push(difference);
+                    }
+                    else
+                    {
+                        Q.push(intersection.size() <= difference.size() ? difference : intersection);
+                    }
+                    W = std::move(Q);
+                    break;
                 }
-
-                for (const auto& sym : alphabet) {
-                    workQueue.emplace(newClass, sym);
-                }
-            }
-        }
-    }
-
-    DFAPtr minimizedDFA = DFA::Instance();
-    std::map<int, DFAStatePtr> newStates;
-
-    for (size_t i = 0; i < partitions.size(); i++) {
-        if (!partitions[i].empty()) {
-            DFAStatePtr rep = *partitions[i].begin();
-            newStates[i] = minimizedDFA->CreateState(rep->m_id, rep->m_isFinal);
-        }
-    }
-
-    for (size_t i = 0; i < partitions.size(); i++) {
-        if (!partitions[i].empty()) {
-            DFAStatePtr oldRep = *partitions[i].begin();
-            DFAStatePtr newRep = newStates[i];
-
-            for (const auto& [symbol, nextState] : oldRep->m_transitions) {
-                int nextClass = stateClass[nextState];
-                newRep->m_transitions[symbol] = newStates[nextClass];
             }
         }
     }
 
-    minimizedDFA->SetStart(newStates[stateClass[dfa->GetStart()]]);
-    return minimizedDFA;
+    DFAPtr minDFA = DFA::Instance();
+    std::map<std::set<DFAStatePtr>, DFAStatePtr> newStates;
+    int idCounter = 0;
+    for (const std::set<DFAStatePtr>& subset : P)
+    {
+        DFAStatePtr newState = minDFA->CreateState(idCounter++, false);
+        newStates[subset] = newState;
+        for (const DFAStatePtr& oldState : subset)
+        {
+            if (oldState->m_isFinal)
+            {
+                newState->m_isFinal = true;
+                break;
+            }
+        }
+    }
+
+    for (const auto& [oldSet, newSet] : newStates)
+    {
+        if (!oldSet.empty())
+        {
+            for (const DFAStatePtr& repr = *oldSet.begin(); const auto& [symbol, targetState] : repr->m_transitions)
+            {
+                for (const auto& [subset, newTargetSet] : newStates)
+                {
+                    if (subset.contains(targetState))
+                    {
+                        newSet->m_transitions.insert({symbol, newTargetSet});
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    for (const auto& [oldSet, newSet] : newStates)
+    {
+        for (const DFAStatePtr& state : oldSet)
+        {
+            if (state == dfa->GetStart())
+            {
+                minDFA->SetStart(newStates[oldSet]);
+            }
+        }
+    }
+    return minDFA;
 }

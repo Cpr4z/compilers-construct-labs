@@ -1,5 +1,4 @@
 #include "NFAFactory.hpp"
-
 #include "NFABuilder.hpp"
 #include "AutomationVizualizator.hpp"
 

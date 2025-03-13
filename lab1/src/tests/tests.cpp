@@ -92,7 +92,7 @@ struct MinDFATestFixture
         DFAPtr dfa = dfaTestFixture.GetDFA();
         if (dfa)
         {
-            m_minDFA = dfaMinimizator->MinimizeDFA(dfa);
+            m_minDFA = dfaMinimizator->MinimizeKhophort(dfa);
         }
     }
 

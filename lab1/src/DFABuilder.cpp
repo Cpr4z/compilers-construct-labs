@@ -82,7 +82,7 @@ IAutomationPtr DFABuilder::Build()
             if (nfaState->m_isFinal)
             {
                 finishStates.insert(dfaState);
-//                break;
+                break;
             }
         }
     }

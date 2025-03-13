@@ -6,7 +6,6 @@
 bool DFA::Imitate(std::string&& regex)
 {
     DFAStatePtr currentState = m_start;
-//    DFAStatePtr lastFinalState;
     for (auto&& symbol: regex | std::views::transform([](char token)
     {
         return std::string{token};
@@ -17,13 +16,7 @@ bool DFA::Imitate(std::string&& regex)
             return false;
         }
         currentState = currentState->m_transitions[symbol];
-
-//        if (currentState->m_isFinal)
-//        {
-//            lastFinalState = currentState;
-//        }
     }
-//    return currentState->m_isFinal || lastFinalState;
     return currentState->m_isFinal;
 }
 

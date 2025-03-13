@@ -1,5 +1,4 @@
 #include "DFAFactory.hpp"
-
 #include "AutomationVizualizator.hpp"
 #include "DFABuilder.hpp"
 

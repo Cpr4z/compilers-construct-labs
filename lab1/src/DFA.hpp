@@ -1,6 +1,5 @@
 #include "IAutomation.hpp"
 #include "NFA.hpp"
-
 #include "DFAState.hpp"
 
 using DFAPtr = std::shared_ptr<class DFA>;

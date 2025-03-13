@@ -1,5 +1,4 @@
 #pragma once
-
 #include "IAutomationBuilder.hpp"
 #include "IAutomationVizu.hpp"
 

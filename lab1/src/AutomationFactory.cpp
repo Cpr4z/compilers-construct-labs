@@ -1,5 +1,4 @@
 #include "AutomationFactory.hpp"
-
 #include "DFAFactory.hpp"
 #include "NFAFactory.hpp"
 

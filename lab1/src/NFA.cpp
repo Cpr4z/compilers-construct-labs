@@ -1,5 +1,4 @@
 #include "NFA.hpp"
-
 #include <ranges>
 #include <algorithm>
 

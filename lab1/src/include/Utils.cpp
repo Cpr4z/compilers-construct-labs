@@ -3,13 +3,9 @@
 #include <format>
 #include <map>
 #include <set>
-
+#include <boost/bimap.hpp>
+#include <boost/signals2.hpp>
 #include "../MyStack.hpp"
-
-#include "boost/bimap.hpp"
-#include "boost/signals2.hpp"
-
-#include <iostream>
 
 namespace Utils
 {

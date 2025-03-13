@@ -1,7 +1,5 @@
 #pragma once
-
 #include <filesystem>
-
 #include "IAutomation.hpp"
 
 namespace fs = std::filesystem;
