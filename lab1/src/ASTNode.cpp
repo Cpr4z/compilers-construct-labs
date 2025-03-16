@@ -1,7 +1,7 @@
 #include "ASTNode.hpp"
 
-ASTNode::ASTNode(std::string token, const ASTNodePtr& left, const ASTNodePtr& right) :
-    m_token(token), m_left(left), m_right(right)
+ASTNode::ASTNode(const std::string& token, const ASTNodePtr& left, const ASTNodePtr& right, int id) :
+    m_token(token), m_left(left), m_right(right), m_id(id)
 {
 }
 
@@ -33,6 +33,26 @@ States& ASTNode::GetLastPos()
 void ASTNode::SetLastPos(const States& lastPos)
 {
     m_lastPos = lastPos;
+}
+
+const std::string& ASTNode::GetToken() const
+{
+    return m_token;
+}
+
+int ASTNode::GetId() const
+{
+    return m_id;
+}
+
+const ASTNodePtr& ASTNode::GetLeft() const
+{
+    return m_left;
+}
+
+const ASTNodePtr& ASTNode::GetRight() const
+{
+    return m_right;
 }
 
 void ASTNode::SetNullable(bool val)

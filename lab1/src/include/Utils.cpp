@@ -202,6 +202,7 @@ std::string_view getFileNameByType(e type)
     {
         AUTO_DETERMINANT.insert({e::NFA, File::nfa_file});
         AUTO_DETERMINANT.insert({e::DFA, File::dfa_file});
+        AUTO_DETERMINANT.insert({e::AST, File::ast_file});
     }
 
     auto it = AUTO_DETERMINANT.left.find(type);

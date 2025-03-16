@@ -1,8 +1,23 @@
 #include "DFABuilder.hpp"
 #include <ranges>
 #include <queue>
+#include <unordered_map>
+#include <unordered_set>
 #include "DFA.hpp"
 #include "Utils.h"
+
+struct StatesHash
+{
+    std::size_t operator()(const States& s) const
+    {
+        std::size_t hashValue = 0;
+        for (size_t elem : s)
+        {
+            hashValue ^= std::hash<size_t>{}(elem) + 0x9e3779b9 + (hashValue << 6) + (hashValue >> 2);
+        }
+        return hashValue;
+    }
+};
 
 void DFABuilder::Init(const NFAWPtr& nfa)
 {

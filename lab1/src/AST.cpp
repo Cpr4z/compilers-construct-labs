@@ -19,6 +19,7 @@ void AST::Init(const std::vector<std::string>& rpn)
 void AST::Build()
 {
     MyStack<ASTNodePtr> astStack;
+    int nodeCount = 0;
     for (auto&& c : m_sequence | std::views::transform([](char tkn)
     {
         return std::string{tkn};
@@ -26,7 +27,7 @@ void AST::Build()
     {
         if (std::isalnum(c.front()))
         {
-            ASTNodePtr node = std::make_shared<ASTNode>(c, nullptr, nullptr);
+            ASTNodePtr node = std::make_shared<ASTNode>(c, nullptr, nullptr, nodeCount++);
             node->AddFirstPos(m_posCount);
             node->AddLastPos(m_posCount);
             m_posToChar[m_posCount++] = c;
@@ -40,7 +41,7 @@ void AST::Build()
             {
                 astStack.pop(left);
             }
-            ASTNodePtr node = std::make_shared<ASTNode>(c, left, right);
+            ASTNodePtr node = std::make_shared<ASTNode>(c, left, right, nodeCount++);
             if (c == "|")
             {
                 if (left && right)

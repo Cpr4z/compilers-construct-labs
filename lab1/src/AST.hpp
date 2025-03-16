@@ -1,6 +1,6 @@
 #pragma once
-#include "ASTNode.hpp"
 #include <map>
+#include "ASTNode.hpp"
 
 using ASTPtr = std::shared_ptr<class AST>;
 

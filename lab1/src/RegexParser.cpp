@@ -59,25 +59,14 @@ int main()
                         ASTPtr ast = AST::Instance();
                         ast->Init(polishedSequence);
                         ast->Build();
+
+                        result = Utils::Exception::ExecuteNoexcept(
+                                [&vizu](const ASTPtr& ast) { vizu->CreateVizu(ast); }, ast);
+
                         DFAPtr minFA = dfaBuilder->BuildFromAST(ast);
 
                         result = Utils::Exception::ExecuteNoexcept(
                                 [&vizu](const IAutomationPtr& minDFA) { vizu->CreateVizu(minDFA);}, minFA);
-
-                        // c*(a|b*)g*d
-                        {
-                            std::cout << std::boolalpha << minimizedDFA->Imitate("aagd") << std::endl;
-                        }
-
-                        // (m|n)*op+(q|r*)s
-                        {
-                            std::cout << std::boolalpha << minimizedDFA->Imitate("opqrs") << std::endl;
-                        }
-
-                        // (a|b+).c*(d|ef+).g*
-                        {
-                            std::cout << std::boolalpha << minimizedDFA->Imitate("bbbbcceffffg") << std::endl;
-                        }
                     }
                 }
             }

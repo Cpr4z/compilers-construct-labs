@@ -186,3 +186,55 @@ std::string AutomationVizualizator::printAutomat(const DFAStatePtr& state, std::
     return out.str();
 }
 
+void AutomationVizualizator::CreateVizu(const ASTPtr& ast)
+{
+    fs_path path = GeneratePath(VizuType::FileType::DOT);
+    Utils::AutomationType::e autoType = AutomationType::AST;
+    std::string_view ext = Utils::VizuType::getInfo(VizuType::FileType::DOT, VizuType::InfoType::EXT);
+    fs_path targetPath = std::format("{}/{}{}{}", path.string(), AutomationType::getFileNameByType(autoType), ++m_countDot, ext);
+
+    std::ofstream file(targetPath);
+    if (!file.is_open())
+    {
+        return;
+    }
+
+    ASTNodeSet visited;
+    const ASTNodePtr& root = ast->GetRoot();
+
+    file << "digraph AST {";
+    file << "    node [shape=circle];\n";
+    file << visitNode(root, visited);
+    file << "}\n";
+
+    FromDotToPng(targetPath, autoType);
+}
+
+std::string AutomationVizualizator::visitNode(const ASTNodePtr& node, ASTNodeSet& visited)
+{
+    if (visited.contains(node))
+    {
+        return {};
+    }
+
+    visited.insert(node);
+    std::ostringstream out;
+    out << " " << node->GetId()
+            << " [label=\"" << node->GetToken() << "\"];\n";
+
+    if (const ASTNodePtr& leftNode = node->GetLeft())
+    {
+        out << " " << node->GetId()
+        << " -> " << leftNode->GetId() << ";\n";
+        out << visitNode(leftNode, visited);
+    }
+
+    if (const ASTNodePtr& rightNode = node->GetRight())
+    {
+        out << " " << node->GetId()
+        << " -> " << rightNode->GetId() << ";\n";
+        out << visitNode(rightNode, visited);
+    }
+    return out.str();
+}
+

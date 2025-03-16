@@ -37,6 +37,7 @@ enum e
 {
     NFA, FIRST = NFA,
     DFA,
+    AST,
     COUNT
 };
 
@@ -44,6 +45,7 @@ namespace File
 {
 constexpr std::string_view nfa_file = "nfa_graph";
 constexpr std::string_view dfa_file = "dfa_graph";
+constexpr std::string_view ast_file = "ast";
 }
 
 std::string_view getFileNameByType(e type);
