@@ -1,3 +1,0 @@
-#include "MinimizedFA.hpp"
-
-

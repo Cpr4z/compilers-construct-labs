@@ -12,7 +12,7 @@ public:
     IAutomationPtr Build() override;
 
     //NFABuilder
-    void Init(std::vector<std::string>&& postfix);
+    void Init(const std::vector<std::string>& postfix);
 
 private:
     std::unique_ptr<NFABuilderImpl> m_impl;

@@ -1,6 +1,7 @@
 #include "DFAMinimizator.hpp"
 #include <queue>
 #include <ranges>
+#include <unordered_map>
 #include "Utils.h"
 
 DFAMinimizatorPtr DFAMinimizator::Instance()
@@ -232,7 +233,6 @@ DFAPtr DFAMinimizator::BuildMinimizedFA(const std::vector<std::string>& tokens)
 DFAPtr DFAMinimizator::MinimizeKhophort(const DFAPtr& dfa)
 {
     std::set<DFAStatePtr> finalStates, nonFinalStates;
-
     for (const DFAStatePtr& state : dfa->GetStates())
     {
         if (state->m_isFinal)

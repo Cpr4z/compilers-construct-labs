@@ -11,6 +11,7 @@ public:
     DFAPtr MinimizeDFA(const DFAPtr& dfa);
     DFAPtr BrzhovkiyMinimize(const DFAPtr& dfa);
     DFAPtr MinimizeKhophort(const DFAPtr& dfa);
+    DFAPtr MinimizeHopcroft(const DFAPtr& dfa);
 
     DFAPtr BuildMinimizedFA(const std::vector<std::string>& tokens);
 

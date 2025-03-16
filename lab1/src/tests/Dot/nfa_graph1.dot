@@ -1,0 +1,12 @@
+digraph FiniteStateMachine {    rankdir=LR;    node [shape=circle];  start [shape=none, label="start"];
+  start -> 2 [style=dashed];
+    2 -> 0 [label="eps"];
+    0 -> 1 [label="a"];
+    1 -> 3 [label="eps"];
+    3 -> 4 [label="eps"];
+    4 -> 5 [label="b"];
+    1 -> 0 [label="eps"];
+    2 -> 3 [label="eps"];
+  accept [shape=none, label="accept"];
+  accept -> 5 [style=dashed];
+}

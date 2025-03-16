@@ -26,8 +26,10 @@ add_library(myLib STATIC
         NFA.cpp
         DFA.hpp
         DFA.cpp
-        MinimizedFA.hpp
-        MinimizedFA.cpp
+        AST.hpp
+        AST.cpp
+        ASTNode.hpp
+        ASTNode.cpp
         MyStack.hpp
         DFAMinimizator.hpp
         DFAMinimizator.cpp

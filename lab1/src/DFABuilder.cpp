@@ -1,5 +1,5 @@
 #include "DFABuilder.hpp"
-
+#include <ranges>
 #include <queue>
 #include "DFA.hpp"
 #include "Utils.h"
@@ -88,6 +88,76 @@ IAutomationPtr DFABuilder::Build()
     }
 
     dfa->SetFinalStates(std::move(finishStates));
+
+    return dfa;
+}
+
+DFAPtr DFABuilder::BuildFromAST(const ASTPtr& ast)
+{
+    DFAPtr dfa = DFA::Instance();
+    std::queue<States> q;
+    int stateCount = 0;
+    std::map<States, DFAStatePtr> stateMap;
+
+    const States& startSet = ast->GetRoot()->GetFirstPos();
+    DFAStatePtr startState = dfa->CreateState(stateCount++);
+    dfa->SetStart(startState);
+    stateMap[startSet] = startState;
+    q.push(startSet);
+
+    const States& lastPosRoot = ast->GetRoot()->GetLastPos();
+    const std::map<int, std::string>& posToChar = ast->GetPosToChar();
+    const std::map<int, States>& followPos = ast->GetFollowPos();
+    while (!q.empty())
+    {
+        States current = q.front();
+        q.pop();
+        DFAStatePtr currentState = stateMap[current];
+
+        std::map<std::string, States> transitions;
+        for (size_t pos : current)
+        {
+            auto itPos = posToChar.find(pos);
+            if (itPos != posToChar.end())
+            {
+                const std::string& symbol = itPos->second;
+                if (!transitions.count(symbol))
+                    transitions[symbol] = {};
+
+                auto itFollow = followPos.find(pos);
+                if (itFollow != followPos.end())
+                {
+                    transitions[symbol].insert(itFollow->second.cbegin(), itFollow->second.cend());
+                }
+            }
+        }
+
+        for (const auto& [symbol, newSet] : transitions)
+        {
+            DFAStatePtr newState;
+            if (stateMap.find(newSet) == stateMap.end())
+            {
+                newState = dfa->CreateState(stateCount++);
+                stateMap[newSet] = newState;
+                q.push(newSet);
+            }
+            else
+            {
+                newState = stateMap[newSet];
+            }
+            currentState->m_transitions[symbol] = newState;
+        }
+
+        bool noTransitions = currentState->m_transitions.empty();
+        bool onlySelfLoop = (currentState->m_transitions.size() == 1) &&
+                            (currentState->m_transitions.begin()->second == currentState);
+
+        if (noTransitions || onlySelfLoop)
+        {
+            currentState->SetIsFinal(true);
+        }
+    }
+
 
     return dfa;
 }

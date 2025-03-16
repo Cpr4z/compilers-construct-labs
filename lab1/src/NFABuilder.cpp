@@ -7,7 +7,7 @@ class NFABuilderImpl
 {
 public:
     IAutomationPtr build();
-    void init(std::vector<std::string>&& postfixNotation);
+    void init(const std::vector<std::string>& postfixNotation);
 
 private:
     std::vector<std::string> m_postfixNotation;
@@ -55,9 +55,9 @@ IAutomationPtr NFABuilderImpl::build()
     return nfaStack.top();
 }
 
-void NFABuilderImpl::init(std::vector<std::string>&& postfixNotation)
+void NFABuilderImpl::init(const std::vector<std::string>& postfixNotation)
 {
-    m_postfixNotation = std::move(postfixNotation);
+    m_postfixNotation = postfixNotation;
 }
 //////////////////////////////////////////////////////////////////////////////
 NFABuilder::NFABuilder(): m_impl(std::make_unique<NFABuilderImpl>())
@@ -66,9 +66,9 @@ NFABuilder::NFABuilder(): m_impl(std::make_unique<NFABuilderImpl>())
 
 NFABuilder::~NFABuilder() = default;
 
-void NFABuilder::Init(std::vector<std::string>&& postfix)
+void NFABuilder::Init(const std::vector<std::string>& postfix)
 {
-    m_impl->init(std::move(postfix));
+    m_impl->init(postfix);
 }
 
 IAutomationPtr NFABuilder::Build()

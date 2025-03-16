@@ -1,3 +1,4 @@
+#pragma once
 #include "IAutomation.hpp"
 #include "NFA.hpp"
 #include "DFAState.hpp"

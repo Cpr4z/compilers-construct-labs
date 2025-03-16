@@ -22,6 +22,8 @@ struct [[nodiscard]] DFAState
         return {};
     }
 
+    void SetIsFinal(bool val) { m_isFinal = val; }
+
     StateId m_id = 0;
     bool m_isFinal = false;
     std::map<std::string, DFAStatePtr> m_transitions;
