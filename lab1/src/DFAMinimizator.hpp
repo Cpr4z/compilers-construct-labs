@@ -14,6 +14,7 @@ public:
     DFAPtr MinimizeHopcroft(const DFAPtr& dfa);
 
     DFAPtr BuildMinimizedFA(const std::vector<std::string>& tokens);
+    DFAPtr BuildFA(std::string&& regex);
 
     [[nodiscard]] static DFAMinimizatorPtr Instance();
 

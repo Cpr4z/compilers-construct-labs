@@ -13,7 +13,7 @@ public:
     NFA(NFAStatePtr start, NFAStatePtr accept);
 
     // IAutomation
-    bool Imitate(std::string&& input) override;
+    bool Imitate(const std::string& input) override;
 
     // NFA
     static NFAPtr Instance();

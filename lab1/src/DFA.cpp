@@ -3,7 +3,7 @@
 #include <ranges>
 #include <queue>
 
-bool DFA::Imitate(std::string&& regex)
+bool DFA::Imitate(const std::string& regex)
 {
     DFAStatePtr currentState = m_start;
     for (auto&& symbol: regex | std::views::transform([](char token)

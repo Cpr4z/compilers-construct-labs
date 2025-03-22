@@ -9,7 +9,7 @@ using DFAStateSet = std::set<DFAStatePtr, DFAStateComparator>;
 class [[nodiscard]] DFA: public IAutomation
 {
 public:
-    bool Imitate(std::string&& regex) override;
+    bool Imitate(const std::string& regex) override;
 
     static DFAPtr Instance();
 

@@ -1,7 +1,6 @@
 #include <string>
 #include <iostream>
 #include <vector>
-#include "AST.hpp"
 #include "Utils.h"
 #include "AutomationFactory.hpp"
 #include "NFABuilder.hpp"
@@ -12,7 +11,6 @@
 int main()
 {
     std::string regex;
-    std::string input;
     std::cout << "Please, enter regular expression" << std::endl;
     while (std::getline(std::cin, regex))
     {
@@ -56,21 +54,22 @@ int main()
                         result = Utils::Exception::ExecuteNoexcept(
                                 [&vizu](const IAutomationPtr& minDFA) { vizu->CreateVizu(minDFA); }, minimizedDFA);
 
-                        ASTPtr ast = AST::Instance();
-                        ast->Init(polishedSequence);
-                        ast->Build();
-
-                        result = Utils::Exception::ExecuteNoexcept(
-                                [&vizu](const ASTPtr& ast) { vizu->CreateVizu(ast); }, ast);
-
-                        DFAPtr minFA = dfaBuilder->BuildFromAST(ast);
+                        DFAPtr minFA = minimizator->BuildFA(std::move(regex));
 
                         result = Utils::Exception::ExecuteNoexcept(
                                 [&vizu](const IAutomationPtr& minDFA) { vizu->CreateVizu(minDFA);}, minFA);
+
+                        std::string input;
+                        while(std::getline(std::cin, input))
+                        {
+                            std::cout << std::boolalpha << (nfa->Imitate(input) && dfa->Imitate(input) &&
+                            minimizedDFA->Imitate(input) && minFA->Imitate(input)) << std::endl;
+                        }
                     }
                 }
             }
         }
+
     }
     return 0;
 }

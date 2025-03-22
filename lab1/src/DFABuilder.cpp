@@ -31,7 +31,7 @@ IAutomationPtr DFABuilder::Build()
         return {};
     }
 
-    const NFAPtr& nfa = m_nfa.lock();
+    NFAPtr nfa = m_nfa.lock();
     DFAPtr dfa = DFA::Instance();
 
     NFAStateSet startClosure;
@@ -45,7 +45,6 @@ IAutomationPtr DFABuilder::Build()
     startClosure = Utils::Transformation::GetEpsilonClosure(tmpClosure);
 
     std::set<DFAStatePtr> finishStates;
-
 
     dfaStates[startClosure] = startState;
     dfa->SetStart(startState);

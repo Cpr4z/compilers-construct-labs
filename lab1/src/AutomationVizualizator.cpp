@@ -94,10 +94,6 @@ void AutomationVizualizator::CreateVizu(const IAutomationPtr& machine)
 
         FromDotToPng(targetPath, autoType);
     }
-    else
-    {
-        return;
-    }
 }
 
 void AutomationVizualizator::FromDotToPng(const fs_path& dot, Utils::AutomationType::e type)
@@ -206,6 +202,8 @@ void AutomationVizualizator::CreateVizu(const ASTPtr& ast)
     file << "    node [shape=circle];\n";
     file << visitNode(root, visited);
     file << "}\n";
+
+    file.close();
 
     FromDotToPng(targetPath, autoType);
 }

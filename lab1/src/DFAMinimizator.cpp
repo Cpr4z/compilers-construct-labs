@@ -2,6 +2,9 @@
 #include <queue>
 #include <ranges>
 #include <unordered_map>
+#include "AutomationFactory.hpp"
+#include "DFABuilder.hpp"
+#include "NFABuilder.hpp"
 #include "Utils.h"
 
 DFAMinimizatorPtr DFAMinimizator::Instance()
@@ -375,4 +378,35 @@ DFAPtr DFAMinimizator::MinimizeKhophort(const DFAPtr& dfa)
         }
     }
     return minDFA;
+}
+
+DFAPtr DFAMinimizator::BuildFA(std::string&& regex)
+{
+    std::vector<std::string> polishedSequence = Utils::preprocessing::validateRegex(std::move(regex));
+    IAutomationFactoryPtr factory = AutomationFactory::CreateStateMachineFactory(Utils::AutomationType::e::NFA);
+    IAutomationBuilderPtr builder = factory->CreateStateMachineBuilder();
+    IAutomationPtr dfa;
+    if (const NFABuilderPtr & nfaBuilder = std::dynamic_pointer_cast<NFABuilder>(builder))
+    {
+        nfaBuilder->Init(polishedSequence);
+        IAutomationPtr nfa = nfaBuilder->Build();
+        IAutomationFactoryPtr factory_ = AutomationFactory::CreateStateMachineFactory(Utils::AutomationType::DFA);
+        IAutomationBuilderPtr builder_ = factory_->CreateStateMachineBuilder();
+        if (const DFABuilderPtr& dfaBuilder = std::dynamic_pointer_cast<DFABuilder>(builder_))
+        {
+            if (const NFAPtr& nfaPtr = std::dynamic_pointer_cast<NFA>(nfa))
+            {
+                dfaBuilder->Init(nfaPtr);
+                dfa = dfaBuilder->Build();
+            }
+        }
+    }
+
+    DFAPtr minFA;
+    if (const DFAPtr& dfaPtr = std::dynamic_pointer_cast<DFA>(dfa))
+    {
+        minFA = MinimizeKhophort(dfaPtr);
+    }
+
+    return minFA;
 }

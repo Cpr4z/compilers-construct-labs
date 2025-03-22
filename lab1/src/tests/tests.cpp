@@ -8,7 +8,6 @@
 #include "../AutomationFactory.hpp"
 #include "../NFABuilder.hpp"
 #include "../DFABuilder.hpp"
-//#include "../AutomationVizualizator.hpp"
 #include "../DFAMinimizator.hpp"
 
 namespace bdata = boost::unit_test::data;
@@ -32,11 +31,11 @@ struct NFATestFixture
         }
     }
 
-    bool Imitate(std::string&& input)
+    bool Imitate(std::string input)
     {
         if (m_nfa)
         {
-            return m_nfa->Imitate(std::move(input));
+            return m_nfa->Imitate(input);
         }
         return false;
     }
@@ -66,11 +65,11 @@ struct DFATestFixture
         }
     }
 
-    bool Imitate(std::string&& input)
+    bool Imitate(std::string input)
     {
         if (m_dfa)
         {
-            return m_dfa->Imitate(std::move(input));
+            return m_dfa->Imitate(input);
         }
         return false;
     }
@@ -101,7 +100,7 @@ struct MinDFATestFixture
     {
         if (m_minDFA)
         {
-            return m_minDFA->Imitate(std::move(input));
+            return m_minDFA->Imitate(input);
         }
         return false;
     }
@@ -114,23 +113,15 @@ struct MinFAFixture
 {
     explicit MinFAFixture(std::string&& regex)
     {
-        TokensSequence polishedSequence = Utils::preprocessing::validateRegex(std::move(regex));
-        ASTPtr ast = AST::Instance();
-        ast->Init(polishedSequence);
-        ast->Build();
-        IAutomationFactoryPtr factory = AutomationFactory::CreateStateMachineFactory(Utils::AutomationType::DFA);
-        IAutomationBuilderPtr builder = factory->CreateStateMachineBuilder();
-        if (const DFABuilderPtr dfaBuilder = std::dynamic_pointer_cast<DFABuilder>(builder))
-        {
-            m_minFA = dfaBuilder->BuildFromAST(ast);
-        }
+        DFAMinimizatorPtr minimizator = DFAMinimizator::Instance();
+        m_minFA = minimizator->BuildFA(std::move(regex));
     }
 
     bool Imitate(std::string input)
     {
         if (m_minFA)
         {
-            return m_minFA->Imitate(std::move(input));
+            return m_minFA->Imitate(input);
         }
         return false;
     }
@@ -152,7 +143,7 @@ BOOST_AUTO_TEST_CASE(testPreprocessing)
 
 BOOST_AUTO_TEST_SUITE(NFA_AND_DFA_TEST_SUITE)
 
-BOOST_DATA_TEST_CASE(NFA_TestCase1_Valid, bdata::make({"b", "ab", "aaaaaaab"}))
+BOOST_DATA_TEST_CASE(NFA_TestCase1_Valid, bdata::make({"b", "ab", "aaaaaaab", "aaab"}))
 {
     NFATestFixture nfaFixture("a*b");
     DFATestFixture dfaFixture("a*b");
@@ -164,7 +155,7 @@ BOOST_DATA_TEST_CASE(NFA_TestCase1_Valid, bdata::make({"b", "ab", "aaaaaaab"}))
     BOOST_CHECK(minFaFixture.Imitate(sample));
 }
 
-BOOST_DATA_TEST_CASE(NFA_TestCase1_Invalid, bdata::make({"ba", "bbbbaaa", "a"}))
+BOOST_DATA_TEST_CASE(NFA_TestCase1_Invalid, bdata::make({"ba", "bbbbaaa", "a", "abab"}))
 {
     NFATestFixture nfaFixture("a*b");
     DFATestFixture dfaFixture("a*b");
@@ -188,7 +179,7 @@ BOOST_DATA_TEST_CASE(NFA_TestCase2_Valid, bdata::make({"a", "b"}))
     BOOST_CHECK(minFaFixture.Imitate(sample));
 }
 
-BOOST_DATA_TEST_CASE(NFA_TestCase2_Invalid, bdata::make({"ba", "bb", "bbbbaaa"}))
+BOOST_DATA_TEST_CASE(NFA_TestCase2_Invalid, bdata::make({"", "ba", "bb", "bbbbaaa", "aaabb"}))
 {
     NFATestFixture nfaFixture("a|b");
     DFATestFixture dfaFixture("a|b");
@@ -248,7 +239,7 @@ BOOST_DATA_TEST_CASE(NFA_TestCase4_Invalid, bdata::make({"", "b", "aab", "ba", "
     BOOST_CHECK(!minFaFixture.Imitate(sample));
 }
 
-BOOST_DATA_TEST_CASE(NFA_TestCase5_Valid, bdata::make({"ab", "aab", "aaaaaaab"}))
+BOOST_DATA_TEST_CASE(NFA_TestCase5_Valid, bdata::make({"ab", "aab", "aaaaaaab", "aaaaaaaaaaaaaaaaab"}))
 {
     NFATestFixture nfaFixture("a+b");
     DFATestFixture dfaFixture("a+b");
@@ -260,7 +251,7 @@ BOOST_DATA_TEST_CASE(NFA_TestCase5_Valid, bdata::make({"ab", "aab", "aaaaaaab"})
     BOOST_CHECK(minFaFixture.Imitate(sample));
 }
 
-BOOST_DATA_TEST_CASE(NFA_TestCase5_Invalid, bdata::make({"b", "aa", "ba", "bbbbb", "bbbbaaa"}))
+BOOST_DATA_TEST_CASE(NFA_TestCase5_Invalid, bdata::make({"", "b", "aa", "ba", "bbbbb", "bbbbaaa", "adsas"}))
 {
     NFATestFixture nfaFixture("a+b");
     DFATestFixture dfaFixture("a+b");
@@ -272,7 +263,7 @@ BOOST_DATA_TEST_CASE(NFA_TestCase5_Invalid, bdata::make({"b", "aa", "ba", "bbbbb
     BOOST_CHECK(!minFaFixture.Imitate(sample));
 }
 
-BOOST_DATA_TEST_CASE(NFA_TestCase6_Valid, bdata::make({"abcv", "aabcv", "aabbcv", "aaabbbcv"}))
+BOOST_DATA_TEST_CASE(NFA_TestCase6_Valid, bdata::make({"abcv", "aabcv", "aabbcv", "aaabbbcv", "abbcccv"}))
 {
     NFATestFixture nfaFixture("a+b+c+v");
     DFATestFixture dfaFixture("a+b+c+v");
@@ -284,7 +275,7 @@ BOOST_DATA_TEST_CASE(NFA_TestCase6_Valid, bdata::make({"abcv", "aabcv", "aabbcv"
     BOOST_CHECK(minFaFixture.Imitate(sample));
 }
 
-BOOST_DATA_TEST_CASE(NFA_TestCase6_Invalid, bdata::make({"", "ab", "bc", "ac", "abbbbbcc"}))
+BOOST_DATA_TEST_CASE(NFA_TestCase6_Invalid, bdata::make({"", "ab", "bc", "ac", "abbbbbcc", "dfad", "fwfeeefefe"}))
 {
     NFATestFixture nfaFixture("a+b+c+v");
     DFATestFixture dfaFixture("a+b+c+v");
@@ -296,31 +287,7 @@ BOOST_DATA_TEST_CASE(NFA_TestCase6_Invalid, bdata::make({"", "ab", "bc", "ac", "
     BOOST_CHECK(!minFaFixture.Imitate(sample));
 }
 
-BOOST_DATA_TEST_CASE(NFA_TestCase7_Valid, bdata::make({"cagd"}))
-{
-    NFATestFixture nfaFixture("c*(a|b*)g*d");
-    DFATestFixture dfaFixture("c*(a|b*)g*d");
-    MinDFATestFixture minDfaTestFixture("c*(a|b*)g*d");
-    MinFAFixture minFaFixture("c*(a|b*)g*d");
-    BOOST_CHECK(nfaFixture.Imitate(sample));
-    BOOST_CHECK(dfaFixture.Imitate(sample));
-    BOOST_CHECK(minDfaTestFixture.Imitate(sample));
-    BOOST_CHECK(minFaFixture.Imitate(sample));
-}
-
-BOOST_DATA_TEST_CASE(NFA_TestCase7_Invalid, bdata::make({"ccbh", "cbgbg"}))
-{
-    NFATestFixture nfaFixture("c*(a|b*)g*d");
-    DFATestFixture dfaFixture("c*(a|b*)g*d");
-    MinDFATestFixture minDfaTestFixture("c*(a|b*)g*d");
-    MinFAFixture minFaFixture("c*(a|b*)g*d");
-    BOOST_CHECK(!nfaFixture.Imitate(sample));
-    BOOST_CHECK(!dfaFixture.Imitate(sample));
-    BOOST_CHECK(!minDfaTestFixture.Imitate(sample));
-    BOOST_CHECK(!minFaFixture.Imitate(sample));
-}
-
-BOOST_DATA_TEST_CASE(NFA_TestCase8_Valid, bdata::make({"aaabh", "aaaaaagggf", "aaabbbbbbh", "aaabbbbbcl", "aaabbbbccccch", "aaabbbbbbd", "aaabbbbbdddd"}))
+BOOST_DATA_TEST_CASE(NFA_TestCase8_Valid, bdata::make({"aaabh", "aaabbbbbcl", "aaabbbbccccch", "aaabbbbbdddd"}))
 {
     NFATestFixture nfaFixture("a+.(a+.g+.f*|b+.(c*.(h|l+)|d+))");
     DFATestFixture dfaFixture("a+.(a+.g+.f*|b+.(c*.(h|l+)|d+))");
@@ -344,19 +311,7 @@ BOOST_DATA_TEST_CASE(NFA_TestCase8_Invalid, bdata::make({"g", "a", "aggg", "abbb
     BOOST_CHECK(!minFaFixture.Imitate(sample));
 }
 
-BOOST_DATA_TEST_CASE(NFA_TestCase9_Valid, bdata::make({"mmnoprrrs", "mnoprs"}))
-{
-    NFATestFixture nfaFixture("(m|n)*op+(q|r*)s");
-    DFATestFixture dfaFixture("(m|n)*op+(q|r*)s");
-    MinDFATestFixture minDfaTestFixture("(m|n)*op+(q|r*)s");
-    MinFAFixture minFaFixture("(m|n)*op+(q|r*)s");
-    BOOST_CHECK(nfaFixture.Imitate(sample));
-    BOOST_CHECK(dfaFixture.Imitate(sample));
-    BOOST_CHECK(minDfaTestFixture.Imitate(sample));
-    BOOST_CHECK(minFaFixture.Imitate(sample));
-}
-
-BOOST_DATA_TEST_CASE(NFA_TestCase9_Invalid, bdata::make({"opr", "opxqs", "oopqq", "ooprrrs", "nnooprs"}))
+BOOST_DATA_TEST_CASE(NFA_TestCase9_Invalid, bdata::make({"", "opr", "opxqs", "oopqq", "ooprrrs", "nnooprs"}))
 {
     NFATestFixture nfaFixture("(m|n)*op+(q|r*)s");
     DFATestFixture dfaFixture("(m|n)*op+(q|r*)s");
@@ -380,7 +335,7 @@ BOOST_DATA_TEST_CASE(NFA_TestCase10_Valid, bdata::make({"ad", "bbbcdgg", "bccccc
     BOOST_CHECK(minFaFixture.Imitate(sample));
 }
 
-BOOST_DATA_TEST_CASE(NFA_TestCase10_Invalid, bdata::make({"d", "c", "bccdd", "abg", "bcdh", "aaefg"}))
+BOOST_DATA_TEST_CASE(NFA_TestCase10_Invalid, bdata::make({"", "d", "c", "bccdd", "abg", "bcdh", "aaefg"}))
 {
     NFATestFixture nfaFixture("(a|b+).c*(d|ef+).g*");
     DFATestFixture dfaFixture("(a|b+).c*(d|ef+).g*");

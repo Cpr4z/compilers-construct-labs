@@ -10,7 +10,7 @@ NFA::NFA(NFAStatePtr start, NFAStatePtr accept) : m_start(std::move(start)), m_a
 {
 }
 
-bool NFA::Imitate(std::string&& input)
+bool NFA::Imitate(const std::string& input)
 {
     NFAStateSet currentStates;
     currentStates.insert(m_start);
