@@ -1,0 +1,12 @@
+2
+A 5
+4
+a b c d
+6
+5 → A a
+5 → b
+A → A c
+A → A a d
+A → b d
+A →
+5

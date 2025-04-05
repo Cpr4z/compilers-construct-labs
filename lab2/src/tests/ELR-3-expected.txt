@@ -1,0 +1,14 @@
+5
+E E' T T' _F
+5
+( ) * + id
+8
+E → T E'
+E' → + T E'
+E' →
+T → _F T'
+T' → * _F T'
+T' →
+_F → ( E )
+_F → id
+E
