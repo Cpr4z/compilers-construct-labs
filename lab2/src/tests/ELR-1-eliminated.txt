@@ -1,0 +1,10 @@
+3
+A A' S
+2
+a b
+4
+A' → 
+A' → b A'
+A → a A'
+S → A a
+S
