@@ -3,8 +3,8 @@ A A'
 2
 a b
 4
-A' → 
 A' → a A'
+A' → ε
 A → A'
 A → b A'
 A

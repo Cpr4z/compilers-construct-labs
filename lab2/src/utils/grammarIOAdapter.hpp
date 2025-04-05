@@ -1,6 +1,6 @@
 #pragma once
 #include <filesystem>
-#include "../grammar/contextFreeGrammar.hpp"
+#include "grammar.hpp"
 
 namespace fs = std::filesystem;
 using fs_path = fs::path;

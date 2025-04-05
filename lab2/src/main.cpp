@@ -54,14 +54,14 @@ bool sRemoveUnreachableSymbolsTest(size_t i)
 int main()
 {
     std::cout << "Tests for left recursion: " << std::endl;
-    for (size_t i = 1; i <= 5; ++i)
+    for (size_t i = 1; i <= 6; ++i)
     {
         std::cout << std::boolalpha << sEliminateLeftRecursionTest(i) << std::endl;
     }
     std::cout << std::endl;
 
     std::cout << "Tests for removing unreachable symbols: " << std::endl;
-    for (size_t i = 1; i <= 1; ++i)
+    for (size_t i = 1; i <= 5; ++i)
     {
         std::cout << std::boolalpha << sRemoveUnreachableSymbolsTest(i) << std::endl;
     }

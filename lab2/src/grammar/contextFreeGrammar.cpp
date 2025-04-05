@@ -96,7 +96,7 @@ void ContextFreeGrammar::eliminateImmediateLeftRecursion_(const GrammarTypes::To
             auto alpha_A1 = alpha;
             alpha_A1.push_back(A1);
             new_production_rules[{A1}].insert(std::move(alpha_A1));
-            new_production_rules[{A1}].insert(GrammarTypes::kEpsilon);
+            new_production_rules[{A1}].insert({GrammarTypes::Token{GrammarTypes::kEpsilon}});
         }
         else if (!p.empty() && p.front() != A || p.empty())
         {
@@ -117,76 +117,74 @@ bool ContextFreeGrammar::hasImmediateLeftRecursionProductionRules(const GrammarT
 
 void ContextFreeGrammar::removeUnreachableSymbols()
 {
-//    using namespace
     GrammarTypes::Alphabet reachable;
     std::queue<GrammarTypes::Token> queue;
     reachable.insert(m_start);
     queue.push(m_start);
     while (!queue.empty())
     {
-        GrammarTypes::Token current = queue.front();
+        const GrammarTypes::Token current = queue.front();
         queue.pop();
-        auto it = m_production_rules.find({ current });
-        if (it == m_production_rules.end()) continue;
-        for (const auto& production : it->second)
+        for (const auto& [lhs, productions] : m_production_rules)
         {
-            for (const auto& symbol : production)
-            {
-                if (reachable.insert(symbol).second)
-                {
-                    queue.push(symbol);
-                }
-            }
-        }
-
-        for (auto it_ = m_non_terminal_symbols.begin(); it_ != m_non_terminal_symbols.end(); )
-        {
-            if (!reachable.contains(*it_)) {
-                it_ = m_non_terminal_symbols.erase(it_);
-            } else {
-                ++it_;
-            }
-        }
-
-        for (auto it_ = m_terminal_symbols.begin(); it_ != m_terminal_symbols.end(); ) {
-            if (!reachable.contains(*it_)) {
-                it_ = m_terminal_symbols.erase(it_);
-            } else {
-                ++it_;
-            }
-        }
-
-        for (auto it_ = m_production_rules.begin(); it_ != m_production_rules.end(); )
-        {
-            if (it_->first.empty() || !reachable.contains(it_->first.front())) {
-                it_ = m_production_rules.erase(it_);
+            if (lhs.empty() || lhs.front() != current)
                 continue;
-            }
 
-            auto& rhs_set = it_->second;
-            for (auto rhs_it = rhs_set.begin(); rhs_it != rhs_set.end(); )
+            for (const auto& production : productions)
             {
-                bool all_reachable = std::all_of(rhs_it->begin(), rhs_it->end(),
-                                                 [&](const auto& t) { return reachable.contains(t); });
-                if (!all_reachable)
+                for (const auto& symbol : production)
                 {
-                    rhs_it = rhs_set.erase(rhs_it);
+                    if (reachable.insert(symbol).second)
+                    {
+                        queue.push(symbol);
+                    }
                 }
-                else
-                {
-                    ++rhs_it;
-                }
-            }
-
-            if (rhs_set.empty())
-            {
-                it_ = m_production_rules.erase(it_);
-            }
-            else
-            {
-                ++it_;
             }
         }
+    }
+
+    for (auto nt_it = m_non_terminal_symbols.begin(); nt_it != m_non_terminal_symbols.end(); )
+    {
+        if (!reachable.contains(*nt_it))
+            nt_it = m_non_terminal_symbols.erase(nt_it);
+        else
+            ++nt_it;
+    }
+
+    for (auto t_it = m_terminal_symbols.begin(); t_it != m_terminal_symbols.end(); )
+    {
+        if (!reachable.contains(*t_it))
+            t_it = m_terminal_symbols.erase(t_it);
+        else
+            ++t_it;
+    }
+
+    for (auto prod_it = m_production_rules.begin(); prod_it != m_production_rules.end(); )
+    {
+        const auto& lhs = prod_it->first;
+        if (lhs.empty() || !reachable.contains(lhs.front()))
+        {
+            prod_it = m_production_rules.erase(prod_it);
+            continue;
+        }
+
+        auto& rhs_set = prod_it->second;
+        for (auto rhs_it = rhs_set.begin(); rhs_it != rhs_set.end(); )
+        {
+            bool all_reachable = std::all_of(rhs_it->begin(), rhs_it->end(),
+                                             [&](const GrammarTypes::Token& token) {
+                                                 return reachable.contains(token);
+                                             });
+            if (!all_reachable)
+                rhs_it = rhs_set.erase(rhs_it);
+            else
+                ++rhs_it;
+        }
+
+        if (rhs_set.empty())
+            prod_it = m_production_rules.erase(prod_it);
+        else
+            ++prod_it;
     }
 }
 

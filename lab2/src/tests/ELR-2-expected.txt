@@ -9,5 +9,5 @@ A → b d A'
 A → A'
 A' → c A'
 A' → a d A'
-A' →
+A' → ε
 5

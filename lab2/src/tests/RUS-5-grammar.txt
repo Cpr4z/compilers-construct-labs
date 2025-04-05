@@ -1,0 +1,13 @@
+4
+S A B C
+5
+a b x y z
+7
+S → A b
+A → a
+A → B
+B → C
+C → x
+C → y
+C → z
+S

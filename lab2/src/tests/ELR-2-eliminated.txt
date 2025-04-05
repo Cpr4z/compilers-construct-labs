@@ -3,9 +3,9 @@
 4
 a b c d
 7
-A' → 
 A' → a d A'
 A' → c A'
+A' → ε
 A → A'
 A → b d A'
 5 → A a

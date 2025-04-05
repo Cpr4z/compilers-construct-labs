@@ -6,5 +6,5 @@ T E' E
 T → a
 E → T E'
 E' → + T E'
-E' →
+E' → ε
 E

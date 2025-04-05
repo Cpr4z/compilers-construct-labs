@@ -3,8 +3,8 @@ E E' T
 2
 + a
 4
-E' → 
 E' → + T E'
+E' → ε
 T → a
 E → T E'
 E

@@ -5,10 +5,10 @@ E E' T T' _F
 8
 E → T E'
 E' → + T E'
-E' →
+E' → ε
 T → _F T'
 T' → * _F T'
-T' →
+T' → ε
 _F → ( E )
 _F → id
 E

@@ -5,7 +5,7 @@ a b
 5
 A → a A'
 A' → b A'
-A' → 
+A' → ε
 S → A a
-A' → 
+A' → ε
 S

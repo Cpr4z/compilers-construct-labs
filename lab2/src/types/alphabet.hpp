@@ -8,5 +8,5 @@ namespace GrammarTypes
     using Alphabet = BasicTypes::Set<Token>;
     using ProductionRules = BasicTypes::UMap<String, BasicTypes::Set<String>>;
 
-    const static String kEpsilon {};
+    constexpr static std::string_view kEpsilon = "\u03B5";
 }
