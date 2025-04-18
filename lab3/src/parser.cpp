@@ -29,14 +29,23 @@ Node Parser::parseOperatorList()
 {
     Node node;
     node.m_data = Grammar::Token{Grammar::TokenType::Operator, "<список операторов>"};
-
     Node op = parseOperator();
     node.m_children.push_back(op);
-
     Node tail = parseTail();
     if (!tail.m_children.empty())
         node.m_children.push_back(tail);
     return node;
+
+// for defending
+//    Node node;
+//    node.m_data = Grammar::Token{Grammar::TokenType::Operator, "<список операторов>"};
+//    while (!match(Grammar::TokenType::CloseBrace))
+//    {
+//        Node op = parseOperator();
+//        expect(Grammar::TokenType::Semicolon);
+//        node.m_children.push_back(op);
+//    }
+//    return node;
 }
 
 Node Parser::parseOperator()

@@ -32,7 +32,7 @@ namespace {
     }
 
 
-    const std::array<std::tuple<std::string, bool>, 15> cTests =
+    const std::array<std::tuple<std::string, bool>, 21> cTests =
     {{
         {"{a = const}", true},
         {"{a = const;}", true},
@@ -47,8 +47,15 @@ namespace {
         {"{a = a div b mod c; {a = +b <= const}}", true},
         {"{ a = -b + const < (not a + b) * b div a; {a = a <> a; {c = const}}}", true},
         {"{ a = b div c; a = a == g}", true},
+
         {"a = const", false},
-        {"{a = const b = a}", false}
+        {"{a = const b = a}", false},
+        {"(a = b +c)", false},
+        {"{ a = const; v = a <> b", false},
+        {"( b = a { k = k + a})", false},
+        {" z = d + k", false},
+        {"{ a = d div mod a}", false},
+        {"{ a = (a + b; k = b}", false}
     }};
 
     void sRunTests() {
@@ -68,8 +75,10 @@ namespace {
 int main() {
 //    sRunTests();
 
-//    std::string s = "{ a = -b + const < (not a + b) * b div a; {a = a <> a; {c = const}}}";
-    std::string s = "{ a = b div c; a = a == g}";
+    std::string s = "{ a = -b + const < (not a + b) * b div a; {a = a <> a; {c = const}}}";
+//    std::string s = "{ a = b div c; a = a == g}";
+
+//    std::string s = "{a = b + v;}";
     Tokenizator tokenizator;
     auto tokens = tokenizator.tokenize(std::move(s));
     Parser parser(tokens);

@@ -1,5 +1,4 @@
 #pragma once
-#include <variant>
 #include <vector>
 #include "grammar.hpp"
 
@@ -10,6 +9,4 @@ struct Node
 
     Grammar::Token m_data;
     std::vector<Node> m_children;
-
-//    Node(const auto& data) : m_data(data) {}
 };
