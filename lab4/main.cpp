@@ -1,53 +1,69 @@
 #include <array>
 #include <iostream>
-#include <tuple>
-
+#include "graphviz.hpp"
+#include "tokenizator.hpp"
 #include "parser.hpp"
-
+#include "utils.hpp"
 
 namespace {
 
-    bool sTest(size_t i, const std::vector<std::string>& input, bool f_expected, const std::string& r_expected) {
-        auto&& [f, r] = Parser::parse(input);
+    bool sTest(size_t i, std::string input, bool expected_result)
+    {
+        Tokenizator tokenizator;
+        auto tokens = tokenizator.tokenize(std::move(input));
+        Parser parser(std::move(tokens));
 
-        constexpr auto printExpected = [](std::string_view what, auto& expected, auto& got) {
-            std::cout << " -- Expected " << what << " == " << std::boolalpha << expected << ", got " << got << std::endl;
+        auto job = [&parser, &tokens]()
+        {
+            auto parsing = [&parser, &tokens](){ parser.parse();};
+            return Utils::invokeNoexcept(parsing);
         };
 
-        bool pass = true;
-        if (f != f_expected) {
-            printExpected("[f, _]", f_expected, f);
-            pass = false;
-        }
-        if (r != r_expected) {
-            printExpected("[_, r]", r_expected, r);
-            pass = false;
-        }
+        bool result = job();
 
-        std::cout << "Test " << std::to_string(i) << (pass ? " passed" : " failed") << std::endl;
+        auto printExpected = [&](std::string_view what, bool expected)
+        {
+            std::cout << " -- Expected " << what << " == " << std::boolalpha << expected << ", got " << result << std::endl;
+        };
 
-        return pass;
+        printExpected("result", expected_result);
+        std::cout << "Test " << std::to_string(i) << (expected_result == result ? " passed" : " failed") << std::endl;
+        return expected_result == result;
     }
 
-    const std::array<std::tuple<std::vector<std::string>, bool, std::string>, 11> cTests = {{
-        {{"a", "<", "b"}, true, "a b <"},
-        {{"a", "b", "c"}, false, ""},
-        {{"(", "(", "(", "a", "/", "b", ")", ")", ")"}, true, "a b /"},
-        {{"(", "a", "mod", "b", ")", "&", "c"}, true, "a b mod c &"},
-        {{"a", "mod", "b", "mod", "c", "+"}, false, ""},
-        {{"a", "and", "c", "xor", "(", "b", "or", "c", ")", "and", "1"}, true, "a c and b c or xor 1 and"},
-        {{"+'", "b", "*", "(", "-\"", "c", ")"}, true, "b +' c -\" *"},
-        {{"(", "not", "a", "and", "b", ")", "and", "(", "c", "or", "d", ")"}, true, "a b and not c d or and"},
-        {{"(", "a", "*", "2", ")", "mod", "c", "+\"", "("}, false, ""},
-        {{"abs", "a", "*", "abs", "(", "b", "-\"", "c", ")"}, true, "a b c -\" abs * abs"},
-        {{"(", "a", "b", "*", "c", ")"}, false, ""},
-                                                                                            }};
+
+    const std::array<std::tuple<std::string, bool>, 21> cTests =
+            {{
+                     {"{a = const}", true},
+                     {"{a = const;}", true},
+                     {"{a = const; a = b * a}", true},
+                     {"{a = const; a = b * a; a = const}", true},
+                     {"{a = const; a = b * a; a = const;  a = (not a + b)}", true},
+                     {"{a = (b) * a}", true},
+                     {"{a = const; {a = -a}}", true},
+                     {"{a = const <> a - a}", true},
+                     {"{a = const <> a; {b = not const}}", true},
+                     {"{a = a div b mod c}", true},
+                     {"{a = a div b mod c; {a = +b <= const}}", true},
+                     {"{ a = -b + const < (not a + b) * b div a; {a = a <> a; {c = const}}}", true},
+                     {"{ a = b div c; a = a == g}", true},
+
+                     {"a = const", false},
+                     {"{a = const b = a}", false},
+                     {"(a = b +c)", false},
+                     {"{ a = const; v = a <> b", false},
+                     {"( b = a { k = k + a})", false},
+                     {" z = d + k", false},
+                     {"{ a = d div mod a}", false},
+                     {"{ a = (a + b; k = b}", false}
+             }};
 
     void sRunTests() {
         size_t i = 1;
         size_t passed = 0;
-        for (const auto& [input, f_expected, r_expected] : cTests) {
-            passed += sTest(i, input, f_expected, r_expected);
+        for (const auto& [input, expected_result] : cTests)
+        {
+            passed += sTest(i, input, expected_result);
             ++i;
         }
         std::cout << "Passed " << passed << "/" << cTests.size() << std::endl;
@@ -57,13 +73,20 @@ namespace {
 
 
 int main() {
-    sRunTests();
+//    sRunTests();
 
-    const std::vector<std::string> tokens = {"a", "and", "c", "xor", "(", "b", "or", "c", ")", "*", "1"};
-    auto&& [f, r] = Parser::parse(tokens);
-    std::cout << std::endl;
-    for (auto& token : tokens) {
-        std::cout << token << " ";
-    }
-    std::cout << '\n' << std::boolalpha << f << ": " << r << std::endl;
+//    std::string s = "{ a = -b + const < (not a + b) * b div a; {a = a <> a; {c = const}}}";
+//    std::string s = "{ a = b; b = a;}";
+//    std::string s = "{ a = b div c; a = a == g}";
+    std::string s = "{ a = j mod v; b = a or a; a = v + h;}";
+
+//    std::string s = "{a = b + v;}";
+    Tokenizator tokenizator;
+    auto tokens = tokenizator.tokenize(std::move(s));
+    Parser parser(tokens);
+    auto tree = parser.parse();
+    std::cout << s << std::endl;
+//    Graphviz::saveDot(tree, "./tree.dot");
+//    Graphviz::GenerateSVGFromDotAndOpen("./tree.dot");
+    tree.to_postfix(std::cout);
 }

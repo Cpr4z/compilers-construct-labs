@@ -1,175 +1,273 @@
 #include "parser.hpp"
 
-#include <map>
-#include <set>
-
-
-namespace {
-
-    using namespace std::string_literals;
-
-    template <typename T>
-    using Set = std::set<T>;
-
-    template <typename T>
-    using Vector = std::vector<T>;
-
-    template <typename Key, typename T>
-    using Map = std::map<Key, T>;
-
-    using Token = std::string;
-    using Tokens = Set<Token>;
-
-    using Precedence = Map<Token, int>;
-
-    using Relations = Map<Token, Map<Token, Token>>;
-
-
-    const auto kMarker = "$"s;
-
-    const Vector<Tokens> kOperators = {
-            {"**", "abs", "not"},
-            {"*", "/", "mod", "rem"},
-            {"+'", "-'"},
-            {"+\"", "-\"", "&"},
-            {"<", "<=", "=", "/>", ">", ">="},
-            {"and", "or", "xor"},
-    };
-
-    const Tokens kPrefixes = {"abs", "not", "+'", "-'"};
-    const Tokens kIdentifiers = {"a", "b", "c", "d"};
-    const Tokens kConstants = {"0", "1", "2"};
-
-    const Tokens kRightAssociative = {"**"};
-
-
-    Precedence sFillPrecedence() {
-        Precedence precedence;
-        for (auto i = static_cast<int>(kOperators.size()) - 1; i >= 0; --i) {
-            for (auto&& op : kOperators[i]) {
-                precedence[op] = i;
-            }
-        }
-        return precedence;
-    }
-
-    void sInsert(Tokens& set, const Tokens& values) {
-        std::copy(values.begin(), values.end(), std::inserter(set, set.end()));
-    }
-
-    void sAppend(Vector<Token>& vector, const Tokens& values) {
-        std::copy(values.begin(), values.end(), std::back_inserter(vector));
-    }
-
-    Tokens sGetAllTokens() {
-        Tokens all_tokens;
-        for (auto&& ops : kOperators) {
-            sInsert(all_tokens, ops);
-        }
-        // sInsert(all_tokens, kPrefixes);
-        sInsert(all_tokens, kIdentifiers);
-        sInsert(all_tokens, kConstants);
-        all_tokens.insert({"(", ")", kMarker});
-        return all_tokens;
-    }
-
-    auto sMakeRelations() {
-        Relations relations = {
-                {kMarker, {{"(", "<"}}},
-                {"(",     {{")", "="}, {"(", "<"}}},
-                {")",     {{"$", ">"}, {")", ">"}}},
-        };
-
-        Vector<Token> variables;
-        variables.reserve(kIdentifiers.size() + kConstants.size());
-        sAppend(variables, kIdentifiers);
-        sAppend(variables, kConstants);
-
-        for (const auto& var : variables) {
-            relations[kMarker][var] = relations["("][var] = "<";
-            relations[var][kMarker] = relations[var][")"] = ">";
-        }
-
-        // Here 'relations[op]' can be stored to speedup
-        auto precedence = sFillPrecedence();
-        for (const auto& [op, _] : precedence) {
-            relations[op][kMarker] = ">";
-            relations[kMarker][op] = "<";
-
-            relations[op]["("] = relations["("][op] = "<";
-            relations[op][")"] = relations[")"][op] = ">";
-
-            for (const auto& var : variables) {
-                relations[op][var] = "<";
-                relations[var][op] = ">";
-            }
-
-            if (kPrefixes.contains(op)) {
-                for (const auto& [op_, pr_] : precedence) {
-                    relations[op_][op] = "<";
-                    relations[op][op_] = precedence[op] > precedence[op_] ? ">" : "<";
-                }
-            } else {
-                for (const auto& [op_, _] : precedence) {
-                    const auto prOp = precedence[op];
-                    const auto prOp_ = precedence[op_];
-
-                    const auto isRightAssociativeOp = kRightAssociative.contains(op);
-                    const auto isRightAssociativeOp_ = kRightAssociative.contains(op_);
-
-                    if (prOp > prOp_ || (prOp == prOp_ && isRightAssociativeOp && isRightAssociativeOp_)) {
-                        relations[op][op_] = "<";
-                    } else if (prOp < prOp_ || (prOp == prOp_ && !isRightAssociativeOp && !isRightAssociativeOp_)) {
-                        relations[op][op_] = ">";
-                    }
-                }
-            }
-        }
-
-        return relations;
-    }
-
-}  // namespace
-
-
-std::pair<bool, std::string> Parser::parse(Vector<Token> tokens)
+Node Parser::parse()
 {
-    auto all_tokens = sGetAllTokens();
-    auto relations = sMakeRelations();
-    tokens.push_back(kMarker);
+    return parseProgram();
+}
 
-    std::string result;
-    auto next_token = tokens.begin();
-    Vector<Token> stack_tail;
-    auto stack_head = kMarker;
+Node Parser::parseProgram()
+{
+    Node node;
+    node.m_data = Grammar::Token{Grammar::TokenType::Operator, "<программа>"};
+    node.m_children.push_back(parseBlock());
+    return node;
+}
 
-    do {
-        if (all_tokens.contains(*next_token)) {
-            if (const auto& relation = relations[stack_head][*next_token]; relation == "<" || relation == "=") {
-                stack_tail.push_back(stack_head);
-                stack_head = *next_token;
-                ++next_token;
-            } else if (relation == ">") {
-                Token prev_stack_head;
-                do {
-                    if (stack_head != "(" && stack_head != ")") {
-                        result.append(stack_head);
-                        result.push_back(' ');
-                    }
+Node Parser::parseBlock()
+{
+    Node node;
+    node.m_data = Grammar::Token{Grammar::TokenType::Operator, "<блок>"};
 
-                    prev_stack_head = stack_head;
-                    stack_head = stack_tail.back();
-                    stack_tail.pop_back();
-                } while (relations[stack_head][prev_stack_head] != "<");
-            } else {
-                return {false, {}};
-            }
-        } else {
-            return {false, {}};
+    expect(Grammar::TokenType::OpenBrace);
+    Node body = parseOperatorList();
+    expect(Grammar::TokenType::CloseBrace);
+    node.m_children.push_back(body);
+    return node;
+}
+
+Node Parser::parseOperatorList()
+{
+//    Node node;
+//    node.m_data = Grammar::Token{Grammar::TokenType::Operator, "<список операторов>"};
+//    Node op = parseOperator();
+//    node.m_children.push_back(op);
+//    Node tail = parseTail();
+//    if (!tail.m_children.empty())
+//        node.m_children.push_back(tail);
+//    return node;
+
+    Node node;
+    node.m_data = Grammar::Token{Grammar::TokenType::Operator, "<список операторов>"};
+    while (!match(Grammar::TokenType::CloseBrace))
+    {
+        Node op = parseOperator();
+        expect(Grammar::TokenType::Semicolon);
+        node.m_children.push_back(op);
+    }
+    return node;
+}
+
+Node Parser::parseOperator()
+{
+    Node node;
+    node.m_data = Grammar::Token{Grammar::TokenType::Operator, "<оператор>"};
+    size_t checkpoint = position();
+    if (match(Grammar::TokenType::Identifier))
+    {
+        Grammar::Token id = advance();
+        if (match(Grammar::TokenType::Assign))
+        {
+            advance();
+            Node expr = parseExpression();
+            node.m_children.emplace_back(id);
+            node.m_children.emplace_back(Grammar::Token{Grammar::TokenType::Assign, "="});
+            node.m_children.push_back(expr);
+            return node;
         }
-    } while (stack_head != kMarker || *next_token != kMarker);
+        else
+        {
+            rewind(checkpoint);
+        }
+    }
+    else if (match(Grammar::TokenType::OpenBrace))
+    {
+        node.m_children.push_back(parseBlock());
+    }
+    else
+    {
+        throw std::runtime_error("Expected operator (assignment or block)");
+    }
+    return node;
+}
 
-    result.pop_back();
+Node Parser::parseTail()
+{
+    Node node;
+    node.m_data = Grammar::Token{Grammar::TokenType::Operator, "<хвост>"};
 
-    return {true, result};
+    if (match(Grammar::TokenType::Semicolon))
+    {
+        advance();
+        if (match(Grammar::TokenType::CloseBrace))
+        {
+            return node;
+        }
+
+        Node nextOp = parseOperator();
+        Node nextTail = parseTail();
+
+        node.m_children.push_back(nextOp);
+        if (!nextTail.m_children.empty())
+            node.m_children.push_back(nextTail);
+    }
+    return node;
+}
+
+Node Parser::parseExpression()
+{
+    if (match(Grammar::TokenType::Identifier))
+    {
+        size_t innerCheckpoint = position();
+        Grammar::Token id = advance();
+        if (match(Grammar::TokenType::Assign))
+        {
+            advance();
+            Node rhs = parseExpression();
+
+            Node assignNode;
+            assignNode.m_data = Grammar::Token{Grammar::TokenType::Operator, "="};
+            assignNode.m_children.emplace_back(id);
+            assignNode.m_children.push_back(rhs);
+            return assignNode;
+        }
+        rewind(innerCheckpoint);
+    }
+
+    Node node;
+    node.m_data = Grammar::Token{Grammar::TokenType::Operator, "<выражение>"};
+    Node left = parseSimpleExpression();
+    if (match(Grammar::TokenType::RelOp1) || match(Grammar::TokenType::RelOp2))
+    {
+        Grammar::Token relOp = advance();
+        Node right = parseSimpleExpression();
+
+        node.m_children.push_back(left);
+        node.m_children.emplace_back(relOp);
+        node.m_children.push_back(right);
+        return node;
+    }
+    return left;
+}
+
+Node Parser::parseSimpleExpression()
+{
+    Node node;
+    node.m_data = Grammar::Token{Grammar::TokenType::Operator, "<простое выражение>"};
+
+    bool hasUnary = false;
+    Grammar::Token unarySign;
+
+    if (match(Grammar::TokenType::PlusMinus)) {
+        unarySign = advance();
+        hasUnary = true;
+    }
+
+    Node term = parseTerm();
+
+    if (hasUnary)
+    {
+        Node unaryNode;
+        unaryNode.m_data = Grammar::Token{Grammar::TokenType::Operator, "<унарное выражение>"};
+        unaryNode.m_children.emplace_back(unarySign);
+        unaryNode.m_children.push_back(term);
+        node.m_children.push_back(unaryNode);
+    }
+    else
+    {
+        node.m_children.push_back(term);
+    }
+
+    while (match(Grammar::TokenType::PlusMinus) || match(Grammar::TokenType::KeywordOr))
+    {
+        Grammar::Token op = advance();
+        Node right = parseTerm();
+
+        Node exprNode;
+        exprNode.m_data = Grammar::Token{Grammar::TokenType::Operator, "<простое выражение>"};
+        exprNode.m_children.push_back(node);
+        exprNode.m_children.emplace_back(op);
+        exprNode.m_children.push_back(right);
+        node = exprNode;
+    }
+    return node;
+}
+
+Node Parser::parseTerm()
+{
+    Node node;
+    node.m_data = Grammar::Token{Grammar::TokenType::Operator, "<терм>"};
+
+    Node left = parseFactor();
+    while (
+            match(Grammar::TokenType::MulDiv) ||
+            match(Grammar::TokenType::KeywordDiv) ||
+            match(Grammar::TokenType::KeywordMod) ||
+            match(Grammar::TokenType::KeywordAnd)
+            )
+    {
+        Grammar::Token op = advance();
+        Node right = parseFactor();
+
+        Node termNode;
+        termNode.m_data = Grammar::Token{Grammar::TokenType::Operator, "<терм>"};
+        termNode.m_children.push_back(left);
+        termNode.m_children.emplace_back(op);
+        termNode.m_children.push_back(right);
+        left = termNode;
+    }
+    return left;
+}
+
+Node Parser::parseFactor()
+{
+    Node node;
+    node.m_data = Grammar::Token{Grammar::TokenType::Operator, "<фактор>"};
+    if (match(Grammar::TokenType::KeywordNot)) {
+        Grammar::Token notToken = advance();
+        Node child = parseFactor();
+
+        node.m_children.emplace_back(notToken);
+        node.m_children.push_back(child);
+        return node;
+    }
+
+    if (match(Grammar::TokenType::PlusMinus))
+    {
+        Grammar::Token unaryToken = advance();
+        Node child = parseFactor();
+
+        node.m_children.emplace_back(unaryToken);
+        node.m_children.push_back(child);
+        return node;
+    }
+
+    if (match(Grammar::TokenType::OpenParen))
+    {
+        advance();
+        Node expr = parseSimpleExpression();
+        expect(Grammar::TokenType::CloseParen);
+
+        return expr;
+    }
+
+    if (match(Grammar::TokenType::Identifier) || match(Grammar::TokenType::KeywordConst))
+    {
+        node.m_data = advance();
+        return node;
+    }
+    throw std::runtime_error("Expected factor but got: " + current().m_value);
+}
+
+const Grammar::Token& Parser::current() const
+{
+    return m_tokens.at(m_pos);
+}
+
+const Grammar::Token& Parser::advance()
+{
+    return m_tokens.at(m_pos++);
+}
+
+bool Parser::match(Grammar::TokenType type)
+{
+    return m_tokens.size() > m_pos && m_tokens[m_pos].m_tokenType == type;
+}
+
+void Parser::expect(Grammar::TokenType type)
+{
+    if (!match(type))
+    {
+        throw std::runtime_error("Expected token of type ...");
+    }
+    advance();
 }
