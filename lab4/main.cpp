@@ -75,10 +75,9 @@ namespace {
 int main() {
 //    sRunTests();
 
-//    std::string s = "{ a = -b + const < (not a + b) * b div a; {a = a <> a; {c = const}}}";
 //    std::string s = "{ a = b; b = a;}";
 //    std::string s = "{ a = b div c; a = a == g}";
-    std::string s = "{ a = j mod v; b = a or a; a = v + h;}";
+    std::string s = "{ a = (b + c) + (v - r); a = (a or b or f) + t; }";
 
 //    std::string s = "{a = b + v;}";
     Tokenizator tokenizator;

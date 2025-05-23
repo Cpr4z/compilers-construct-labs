@@ -3,7 +3,17 @@
 void Node::to_postfix(std::ostream& out)
 {
     const std::string& val = m_data.m_value;
-    if (val == "<программа>" || val == "<блок>" || val == "<список операторов>")
+
+    if (val == "<программа>")
+    {
+        out << "{ ";
+        for (auto& child : m_children)
+            child.to_postfix(out);
+        out << "} ";
+        return;
+    }
+
+    if (val == "<блок>" || val == "<список операторов>")
     {
         for (auto& child : m_children)
             child.to_postfix(out);
@@ -12,8 +22,9 @@ void Node::to_postfix(std::ostream& out)
 
     if (val == "<оператор>" && m_children.size() == 3 && m_children[1].m_data.m_value == "=")
     {
+        m_children[0].to_postfix(out);
         m_children[2].to_postfix(out);
-        out << m_children[0].m_data.m_value << " :=; ";
+        out << "=; ";
         return;
     }
 
